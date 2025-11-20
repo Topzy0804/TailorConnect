@@ -1,11 +1,11 @@
 import { Package, Clock, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
-import { mockOrders, mockTailors, mockDesigns } from '../data/mockData';
-import { useApp } from '../context/AppContext';
+import { mockOrders, mockTailors, mockDesigns } from '../data';
+import { useApp } from '../context';
 
 export const CustomerDashboard = () => {
   const { setCurrentView, setSelectedTailorId } = useApp();
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-700';
@@ -20,7 +20,7 @@ export const CustomerDashboard = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status) => {
     switch (status) {
       case 'pending':
         return <Clock className="w-4 h-4" />;

@@ -1,7 +1,7 @@
 import { ArrowLeft, Check, CreditCard } from 'lucide-react';
 import { useState } from 'react';
-import { mockDesigns, mockTailors } from '../data/mockData';
-import { useApp } from '../context/AppContext';
+import { mockDesigns, mockTailors } from '../data';
+import { useApp } from '../context';
 
 export const Checkout = () => {
   const { setCurrentView, selectedDesignId, selectedTailorId } = useApp();

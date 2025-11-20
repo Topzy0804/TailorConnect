@@ -1,5 +1,5 @@
 import { Scissors, Users, MessageCircle, Star, ArrowRight, Sparkles, Shield, Clock } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context';
 
 export const Home = () => {
   const { setCurrentView } = useApp();

@@ -1,19 +1,11 @@
 import { Send, ArrowLeft, Paperclip, Image as ImageIcon } from 'lucide-react';
 import { useState } from 'react';
-import { mockTailors } from '../data/mockData';
-import { useApp } from '../context/AppContext';
-
-interface ChatMessage {
-  id: string;
-  senderId: string;
-  content: string;
-  timestamp: string;
-  isOwn: boolean;
-}
+import { mockTailors } from '../data';
+import { useApp } from '../context';
 
 export const Chat = () => {
   const { setCurrentView, selectedTailorId } = useApp();
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(
+  const [selectedConversation, setSelectedConversation] = useState(
     selectedTailorId || '1'
   );
   const [message, setMessage] = useState('');
@@ -27,7 +19,7 @@ export const Chat = () => {
     unread: tailor.id === '1' ? 2 : 0,
   }));
 
-  const mockMessages: ChatMessage[] = [
+  const mockMessages = [
     {
       id: '1',
       senderId: 'customer',

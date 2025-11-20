@@ -1,7 +1,7 @@
 import { Search, MapPin, Star, Filter } from 'lucide-react';
 import { useState } from 'react';
-import { mockTailors, mockDesigns } from '../data/mockData';
-import { useApp } from '../context/AppContext';
+import { mockTailors, mockDesigns } from '../data';
+import { useApp } from '../context';
 
 export const BrowseTailors = () => {
   const { setCurrentView, setSelectedTailorId } = useApp();
@@ -22,7 +22,7 @@ export const BrowseTailors = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const handleTailorClick = (tailorId: string) => {
+  const handleTailorClick = (tailorId) => {
     setSelectedTailorId(tailorId);
     setCurrentView('tailor-profile');
   };

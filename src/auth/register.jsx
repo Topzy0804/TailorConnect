@@ -1,34 +1,128 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { account, ID } from "../lib/appwrite";
 
 const Register = () => {
   const [tab, setTab] = useState("customer");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleRegister = (role) => {
-    if (!email || !password) {
+  const [CustomerDetails, setCustomerDetails] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [tailorDetails, setTailorDetails] = useState({
+    firstName: "",
+    lastName: "",
+    businessName: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
+
+  const updateCustomerDetails = (e) => {
+    setCustomerDetails((prevDetails) => ({
+      ...prevDetails,
+
+      [e.target.name]: e.target.value
+    }));
+  }
+
+  const updateTailorDetails = (e) => {
+    setTailorDetails((prevDetails) => ({
+      ...prevDetails,
+      [e.target.name]: e.target.value
+    }));
+  }
+
+  const handleTailorRegister = async (role) => {
+    if (!tailorDetails.email || !tailorDetails.password) {
       alert("Please provide email and password");
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (tailorDetails.password !== tailorDetails.confirmPassword) {
       alert("Passwords do not match");
       return;
     }
 
-    console.log("Registering", { role, name, email });
+    try{
+      let fullname = `${tailorDetails.firstName} ${tailorDetails.lastName}`;
+      await account.create({
+        userId: ID.unique(),
+        businessName: tailorDetails.businessName,
+        email: tailorDetails.email,
+        password: tailorDetails.password,
+        name: fullname,
+      });
+      alert("Registration successful!");
+      setTailorDetails({
+        firstName: "",
+        lastName: "",
+        businessName: "",
+        email: "",
+        password: "",
+        confirmPassword: ""
+      });
+      if (role === "customer") {
+        window.location.href = "/customer-dashboard";
+      }
+      else if (role === "tailor") {
+        window.location.href = "/tailor-dashboard";
+      }
+      navigate("/");
+    } catch (error) {
+      console.error("Registration failed:", error);
+      alert("Registration failed. Please try again.");
+    }
+  }
 
-    if (role === "customer") {
-      window.location.href = "/customer-dashboard";
+  const handleCustomerRegister =  async (role) => {
+    if (!CustomerDetails.email || !CustomerDetails.password) {
+      alert("Please provide email and password");
+      return;
     }
-    else if (role === "tailor") {
-      window.location.href = "/tailor-dashboard";
+
+    if (CustomerDetails.password !== CustomerDetails.confirmPassword) {
+      alert("Passwords do not match");
+      return;
     }
-    navigate("/");
+
+    // console.log("Registering", { role, name, email });
+    try{
+      // Registration logic here (e.g., API call)
+      let fullname = `${CustomerDetails.firstName} ${CustomerDetails.lastName}`;
+      await account.create({
+        userId: ID.unique(),
+        email: CustomerDetails.email,
+        password: CustomerDetails.password,
+        name: fullname,
+      });
+      alert("Registration successful!");
+      setCustomerDetails({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      })
+      if (role === "customer") {
+        window.location.href = "/customer-dashboard";
+      }
+      else if (role === "tailor") {
+        window.location.href = "/tailor-dashboard";
+      }
+      navigate("/");
+    } catch (error) {
+      console.error("Registration failed:", error);
+      alert("Registration failed. Please try again.");
+    }
+
+
+
   };
 
   return (
@@ -96,14 +190,32 @@ const Register = () => {
                     htmlFor="customer-name"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Full name
+                    FirstName
                   </label>
                   <input
-                    id="customer-name"
+                    id="customer-firstname"
                     type="text"
-                    placeholder="Sarah Johnson"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    name="firstName"
+                    placeholder="firstName"
+                    value={CustomerDetails.firstName}
+                    onChange={(e) => updateCustomerDetails(e)}
+                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+                  />
+                </div>
+                 <div>
+                  <label
+                    htmlFor="customer-name"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    LastName
+                  </label>
+                  <input
+                    id="customer-lastname"
+                    type="text"
+                    name="lastName"
+                    placeholder="lastName"
+                    value={CustomerDetails.lastName}
+                    onChange={(e) => updateCustomerDetails(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
@@ -118,9 +230,10 @@ const Register = () => {
                   <input
                     id="customer-email"
                     type="email"
+                    name="email"
                     placeholder="sarah@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={CustomerDetails.email}
+                    onChange={(e) => updateCustomerDetails(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
@@ -135,9 +248,10 @@ const Register = () => {
                   <input
                     id="customer-password"
                     type="password"
+                    name="password"
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={CustomerDetails.password}
+                    onChange={(e) => updateCustomerDetails(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
@@ -152,15 +266,16 @@ const Register = () => {
                   <input
                     id="customer-confirm"
                     type="password"
+                    name="confirmPassword"
                     placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    value={CustomerDetails.confirmPassword}
+                    onChange={(e) => updateCustomerDetails(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
 
                 <button
-                  onClick={() => handleRegister("customer")}
+                  onClick={() => handleCustomerRegister("customer")}
                   className="w-full bg-emerald-600 text-white px-4 py-2 rounded"
                 >
                   Create Account
@@ -189,18 +304,52 @@ const Register = () => {
                     htmlFor="tailor-name"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Business / Full name
+                   FirstName 
                   </label>
                   <input
                     id="tailor-name"
+                    name="firstName"
                     type="text"
                     placeholder="Marcus Tailoring"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={tailorDetails.firstName}
+                    onChange={(e) => updateTailorDetails(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
-
+                <div>
+                  <label
+                    htmlFor="tailor-name"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                   LastName
+                  </label>
+                  <input
+                    id="tailor-name"
+                    name="lastName"
+                    type="text"
+                    placeholder="Marcus Tailoring"
+                    value={tailorDetails.lastName}
+                    onChange={(e) => updateTailorDetails(e)}
+                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="tailor-name"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                   Business Name
+                  </label>
+                  <input
+                    id="tailor-business"
+                    name="businessName"
+                    type="text"
+                    placeholder="Marcus Tailoring"
+                    value={tailorDetails.businessName}
+                    onChange={(e) => updateTailorDetails(e)}
+                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+                  />
+                </div>
                 <div>
                   <label
                     htmlFor="tailor-email"
@@ -210,10 +359,11 @@ const Register = () => {
                   </label>
                   <input
                     id="tailor-email"
+                    name="email"
                     type="email"
                     placeholder="marcus@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={tailorDetails.email}
+                    onChange={(e) => updateTailorDetails(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
@@ -227,10 +377,11 @@ const Register = () => {
                   </label>
                   <input
                     id="tailor-password"
+                    name="password"
                     type="password"
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={tailorDetails.password}
+                    onChange={(e) => updateTailorDetails(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
@@ -244,16 +395,17 @@ const Register = () => {
                   </label>
                   <input
                     id="tailor-confirm"
+                    name="confirmPassword"
                     type="password"
                     placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    value={tailorDetails.confirmPassword}
+                    onChange={(e) => updateTailorDetails(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
 
                 <button
-                  onClick={() => handleRegister("tailor")}
+                  onClick={() => handleTailorRegister("tailor")}
                   className="w-full bg-emerald-600 text-white px-4 py-2 rounded"
                 >
                   Create Account
@@ -269,7 +421,7 @@ const Register = () => {
             </div>
           )}
 
-          {tab === "admin" && (
+          {/* {tab === "admin" && (
             <div>
               <h2 className="text-lg font-medium mb-2">Admin Registration</h2>
               <p className="text-sm text-gray-600 mb-4">
@@ -346,7 +498,7 @@ const Register = () => {
                 </div>
 
                 <button
-                  onClick={() => handleRegister("admin")}
+                  onClick={() => handleCustomerRegister("admin")}
                   className="w-full bg-emerald-600 text-white px-4 py-2 rounded"
                 >
                   Create Account
@@ -360,7 +512,7 @@ const Register = () => {
                 </p>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>

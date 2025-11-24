@@ -1,18 +1,77 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { account } from "../lib/appwrite";
+
+import { useUser } from "./userContext";
 
 export default function Login() {
   const [tab, setTab] = useState("customer");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // useUser must be called inside component body; guard if no provider
+  const userData = useUser(); 
+  const {setUser} = userData;
+  const navigate = useNavigate();
 
-  const handleLogin = (role) => {
-    // Replace with real authentication flow
-    console.log("Login attempt", { role, email });
-    alert(`Demo: signing in as ${role} with ${email}`);
-    if (role === "customer") {
-      window.location.href = "/customer-dashboard";
-    } else if (role === "tailor") {
-      window.location.href = "/tailor-dashboard";
+  const [tailorLoginDetails, setTailorLoginDetails] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [customerLoginDetails, setCustomerLoginDetails] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleCustomerUpdate = (e) => {
+    setCustomerLoginDetails({
+      ...customerLoginDetails,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleTailorUpdate = (e) => {
+    setTailorLoginDetails({
+      ...tailorLoginDetails,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleTailorLogin = async (e, role) => {
+    e.preventDefault();
+
+    try {
+      const user = await account.createEmailPasswordSession({
+        email: tailorLoginDetails.email,
+        password: tailorLoginDetails.password,
+      });
+      if (typeof setUser === "function") setUser(user);
+      else
+        console.warn("setUser is not available from context; skipping setUser");
+
+      if (role === "customer") navigate("/customer-dashboard");
+      else if (role === "tailor") navigate("/tailor-dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert("Login failed. Please try again.");
+    }
+  };
+
+  const handleCustomerLogin = async (e, role) => {
+    e.preventDefault();
+
+    try {
+      const user = await account.createEmailPasswordSession({
+        email: customerLoginDetails.email,
+        password: customerLoginDetails.password,
+      });
+      if (typeof setUser === "function") setUser(user);
+      else
+        console.warn("setUser is not available from context; skipping setUser");
+
+      if (role === "customer") navigate("/customer-dashboard");
+      else if (role === "tailor") navigate("/tailor-dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert("Login failed. Please try again.");
     }
   };
 
@@ -85,10 +144,11 @@ export default function Login() {
                   </label>
                   <input
                     id="customer-email"
+                    name="email"
                     type="email"
                     placeholder="sarah@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={customerLoginDetails.email}
+                    onChange={(e) => handleCustomerUpdate(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
@@ -102,16 +162,17 @@ export default function Login() {
                   </label>
                   <input
                     id="customer-password"
+                    name="password"
                     type="password"
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={customerLoginDetails.password}
+                    onChange={(e) => handleCustomerUpdate(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
 
                 <button
-                  onClick={() => handleLogin("customer")}
+                  onClick={(e) => handleCustomerLogin(e, "customer")}
                   className="w-full bg-emerald-600 text-white px-4 py-2 rounded"
                 >
                   Sign In
@@ -147,10 +208,11 @@ export default function Login() {
                   </label>
                   <input
                     id="tailor-email"
+                    name="email"
                     type="email"
                     placeholder="marcus@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={tailorLoginDetails.email}
+                    onChange={(e) => handleTailorUpdate(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
@@ -164,29 +226,36 @@ export default function Login() {
                   </label>
                   <input
                     id="tailor-password"
+                    name="password"
                     type="password"
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={tailorLoginDetails.password}
+                    onChange={(e) => handleTailorUpdate(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
 
                 <button
-                  onClick={() => handleLogin("tailor")}
+                  onClick={(e) => handleTailorLogin(e, "tailor")}
                   className="w-full bg-emerald-600 text-white px-4 py-2 rounded"
                 >
                   Sign In
                 </button>
 
                 <p className="text-center text-gray-600">
-                  Demo: Click "Sign In" to explore the tailor dashboard
+                  don't have an account?{" "}
+                  <a
+                    href="/register"
+                    className="text-emerald-600 hover:underline"
+                  >
+                    Register here
+                  </a>
                 </p>
               </div>
             </div>
           )}
 
-          {tab === "admin" && (
+          {/* {tab === "admin" && (
             <div>
               <h2 className="text-lg font-medium mb-2">Admin Login</h2>
               <p className="text-sm text-gray-600 mb-4">
@@ -240,7 +309,7 @@ export default function Login() {
                 </p>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>

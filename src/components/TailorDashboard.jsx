@@ -1,17 +1,32 @@
-import { Plus, Package, TrendingUp, DollarSign, Eye, Edit, Trash2 } from 'lucide-react';
-import { mockOrders, mockDesigns } from '../data';
-import { useState } from 'react';
+import {
+  Plus,
+  Package,
+  TrendingUp,
+  DollarSign,
+  Eye,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import { mockOrders, mockDesigns } from "../data";
+import { useState } from "react";
+import AddCloth from "./tailorModal/addCloth";
 
 export const TailorDashboard = () => {
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState("orders");
 
-  const tailorOrders = mockOrders.filter((o) => o.tailorId === '1');
-  const tailorDesigns = mockDesigns.filter((d) => d.tailorId === '1');
+  const tailorOrders = mockOrders.filter((o) => o.tailorId === "1");
+  const tailorDesigns = mockDesigns.filter((d) => d.tailorId === "1");
 
   const totalRevenue = tailorOrders.reduce((sum, o) => sum + o.totalAmount, 0);
   const activeOrders = tailorOrders.filter(
-    (o) => o.status === 'pending' || o.status === 'in_progress'
+    (o) => o.status === "pending" || o.status === "in_progress"
   ).length;
+
+  const [isAddClothOpen, setIsAddClothOpen] = useState(false);
+
+  const handleAddClothClose = () => {
+    setIsAddClothOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -28,7 +43,9 @@ export const TailorDashboard = () => {
         <div className="grid md:grid-cols-4 gap-6 mb-12">
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm font-medium">Total Revenue</span>
+              <span className="text-gray-600 text-sm font-medium">
+                Total Revenue
+              </span>
               <DollarSign className="w-5 h-5 text-emerald-600" />
             </div>
             <p className="text-3xl font-bold text-gray-900">
@@ -42,7 +59,9 @@ export const TailorDashboard = () => {
 
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm font-medium">Active Orders</span>
+              <span className="text-gray-600 text-sm font-medium">
+                Active Orders
+              </span>
               <Package className="w-5 h-5 text-blue-600" />
             </div>
             <p className="text-3xl font-bold text-gray-900">{activeOrders}</p>
@@ -50,18 +69,26 @@ export const TailorDashboard = () => {
 
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm font-medium">Total Designs</span>
+              <span className="text-gray-600 text-sm font-medium">
+                Total Designs
+              </span>
               <Eye className="w-5 h-5 text-purple-600" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{tailorDesigns.length}</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {tailorDesigns.length}
+            </p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 text-sm font-medium">Total Orders</span>
+              <span className="text-gray-600 text-sm font-medium">
+                Total Orders
+              </span>
               <Package className="w-5 h-5 text-emerald-600" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">{tailorOrders.length}</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {tailorOrders.length}
+            </p>
           </div>
         </div>
 
@@ -70,28 +97,31 @@ export const TailorDashboard = () => {
             <div className="flex items-center justify-between px-6 py-4">
               <div className="flex gap-4">
                 <button
-                  onClick={() => setActiveTab('orders')}
+                  onClick={() => setActiveTab("orders")}
                   className={`px-4 py-2 font-semibold transition-colors ${
-                    activeTab === 'orders'
-                      ? 'text-emerald-600 border-b-2 border-emerald-600'
-                      : 'text-gray-600 hover:text-gray-900'
+                    activeTab === "orders"
+                      ? "text-emerald-600 border-b-2 border-emerald-600"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Orders
                 </button>
                 <button
-                  onClick={() => setActiveTab('designs')}
+                  onClick={() => setActiveTab("designs")}
                   className={`px-4 py-2 font-semibold transition-colors ${
-                    activeTab === 'designs'
-                      ? 'text-emerald-600 border-b-2 border-emerald-600'
-                      : 'text-gray-600 hover:text-gray-900'
+                    activeTab === "designs"
+                      ? "text-emerald-600 border-b-2 border-emerald-600"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   My Designs
                 </button>
               </div>
-              {activeTab === 'designs' && (
-                <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center gap-2">
+              {activeTab === "designs" && (
+                <button
+                  onClick={() => setIsAddClothOpen(true)}
+                  className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                >
                   <Plus className="w-5 h-5" />
                   Add Design
                 </button>
@@ -99,7 +129,7 @@ export const TailorDashboard = () => {
             </div>
           </div>
 
-          {activeTab === 'orders' ? (
+          {activeTab === "orders" ? (
             <div className="divide-y divide-gray-200">
               {tailorOrders.length === 0 ? (
                 <div className="p-12 text-center">
@@ -113,7 +143,10 @@ export const TailorDashboard = () => {
                     : null;
 
                   return (
-                    <div key={order.id} className="p-6 hover:bg-gray-50 transition-colors">
+                    <div
+                      key={order.id}
+                      className="p-6 hover:bg-gray-50 transition-colors"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex gap-4 flex-1">
                           <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
@@ -132,18 +165,20 @@ export const TailorDashboard = () => {
 
                           <div className="flex-1">
                             <h3 className="text-lg font-bold text-gray-900 mb-1">
-                              {design ? design.title : 'Custom Order'}
+                              {design ? design.title : "Custom Order"}
                             </h3>
                             <p className="text-gray-600 text-sm mb-2">
-                              Order #{order.id} •{' '}
+                              Order #{order.id} •{" "}
                               {new Date(order.createdAt).toLocaleDateString()}
                             </p>
                             {order.isCustom && order.measurements && (
                               <div className="text-sm text-gray-600 mb-2">
-                                <span className="font-medium">Measurements:</span>{' '}
-                                {Object.entries(order.measurements).map(
-                                  ([key, value]) => `${key}: ${value}`
-                                ).join(', ')}
+                                <span className="font-medium">
+                                  Measurements:
+                                </span>{" "}
+                                {Object.entries(order.measurements)
+                                  .map(([key, value]) => `${key}: ${value}`)
+                                  .join(", ")}
                               </div>
                             )}
                             <div className="flex items-center gap-4">
@@ -194,7 +229,9 @@ export const TailorDashboard = () => {
                       <span className="text-xl font-bold text-gray-900">
                         ${(design.price / 100).toFixed(2)}
                       </span>
-                      <span className="text-sm text-gray-600">{design.category}</span>
+                      <span className="text-sm text-gray-600">
+                        {design.category}
+                      </span>
                     </div>
                     <div className="flex gap-2">
                       <button className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
@@ -212,6 +249,11 @@ export const TailorDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* render modal when open */}
+      {isAddClothOpen && (
+        <AddCloth onClose={handleAddClothClose} initialMode="design" />
+      )}
     </div>
   );
 };

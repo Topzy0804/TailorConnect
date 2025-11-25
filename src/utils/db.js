@@ -1,5 +1,6 @@
 import { tablesDB } from "../lib/appwrite";
 import { ID, Query } from "appwrite";
+import { storage } from "../lib/appwrite";
 
 export const createRows = async (tableId, data) => {
   const response = await tablesDB.createRow({
@@ -40,5 +41,13 @@ export const fetchRow = async (tableId, rowId) => {
   return response;
 };
 
+export const uploadFile = async (bucketId, file) => {
+  const response = await storage.createFile({
+    bucketId: bucketId,
+    fileId: ID.unique(),
+    file: file
+  });
+  return response;
+};
 // export Query so callers can build queries consistently
 export { Query };

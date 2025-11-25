@@ -8,11 +8,12 @@ import {
   Trash2,
 } from "lucide-react";
 import { mockOrders, mockDesigns } from "../data";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AddCloth from "./tailorModal/addCloth";
 
 export const TailorDashboard = () => {
   const [activeTab, setActiveTab] = useState("orders");
+  const [statusFilter, setStatusFilter] = useState(""); // new
 
   const tailorOrders = mockOrders.filter((o) => o.tailorId === "1");
   const tailorDesigns = mockDesigns.filter((d) => d.tailorId === "1");
@@ -199,6 +200,7 @@ export const TailorDashboard = () => {
                         </div>
                       </div>
                     </div>
+                    //tailor
                   );
                 })
               )}

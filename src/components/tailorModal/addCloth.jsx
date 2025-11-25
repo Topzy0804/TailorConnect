@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "../../auth/userContext";
 import { useApp } from "../../context";
 // import your DB helper here (replace with actual path)
-import { createRows } from "../../utils/db"; // <-- add or replace with your API/SDK
-
+import { createRows, uploadFile } from "../../utils/db";
 /**
  * AddCloth modal — allows creating a sale item or design.
  * Props:
@@ -88,15 +87,34 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
 
     setSubmitting(true);
     try {
+      // Upload files and keep returned file documents
+      const uploadedFiles = await Promise.all(
+        images.map(async (img) => {
+          if (!img) throw new Error("File not found in payload");
+          // log for debugging
+          console.log("Uploading file:", img.name, img.type, img.size);
+          // uploadFile expects (bucketId, File) per new helper
+          const uploaded = await uploadFile(
+            import.meta.env.VITE_APPWRITE_BUCKET_ID,
+            img
+          );
+          return uploaded;
+        })
+      );
+
       const clothing = {
         title: title.trim(),
         description: description.trim(),
-        price: mode === "sale" ? Number(price) : null,
+        price: String(Number(price || 0).toFixed(2)), // Appwrite expects string as discussed
         category: category.trim(),
         sizes,
         colors,
-        available,
-        // images: you may want to upload images separately and store URLs
+        available: available ? "available" : "unavailable",
+        images: uploadedFiles.map((f) => ({
+          $id: f.$id,
+          bucketId: f.bucketId,
+          name: f.name,
+        })), // store minimal file info
       };
 
       // ensure createRows exists or replace with your API call

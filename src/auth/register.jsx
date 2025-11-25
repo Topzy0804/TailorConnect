@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { account, ID } from "../lib/appwrite";
+import { account, ID, tablesDB } from "../lib/appwrite";
+import { Phone } from "lucide-react";
 
 const Register = () => {
   const [tab, setTab] = useState("customer");
@@ -10,6 +11,7 @@ const Register = () => {
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -19,24 +21,26 @@ const Register = () => {
     lastName: "",
     businessName: "",
     email: "",
+    phone: "",
+    location: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
 
   const updateCustomerDetails = (e) => {
     setCustomerDetails((prevDetails) => ({
       ...prevDetails,
 
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
-  }
+  };
 
   const updateTailorDetails = (e) => {
     setTailorDetails((prevDetails) => ({
       ...prevDetails,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
-  }
+  };
 
   const handleTailorRegister = async (role) => {
     if (!tailorDetails.email || !tailorDetails.password) {
@@ -49,14 +53,30 @@ const Register = () => {
       return;
     }
 
-    try{
+    try {
+      // Registration logic here
       let fullname = `${tailorDetails.firstName} ${tailorDetails.lastName}`;
-      await account.create({
+      const newTailor = await account.create({
         userId: ID.unique(),
         businessName: tailorDetails.businessName,
         email: tailorDetails.email,
+        phone: tailorDetails.phone,
         password: tailorDetails.password,
         name: fullname,
+      });
+
+      await tablesDB.createRow({
+        databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID_USERS,
+        tableId: import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
+        rowId: newTailor.$id,
+        data: {
+          businessName: tailorDetails.businessName,
+          name: fullname,
+          email: tailorDetails.email,
+          phone: tailorDetails.phone,
+          location: tailorDetails.location,
+          role: "tailor",
+        },
       });
       alert("Registration successful!");
       setTailorDetails({
@@ -64,13 +84,14 @@ const Register = () => {
         lastName: "",
         businessName: "",
         email: "",
+        phone: "",
+        location: "",
         password: "",
-        confirmPassword: ""
+        confirmPassword: "",
       });
       if (role === "customer") {
         window.location.href = "/customer-dashboard";
-      }
-      else if (role === "tailor") {
+      } else if (role === "tailor") {
         window.location.href = "/tailor-dashboard";
       }
       navigate("/");
@@ -78,9 +99,9 @@ const Register = () => {
       console.error("Registration failed:", error);
       alert("Registration failed. Please try again.");
     }
-  }
+  };
 
-  const handleCustomerRegister =  async (role) => {
+  const handleCustomerRegister = async (role) => {
     if (!CustomerDetails.email || !CustomerDetails.password) {
       alert("Please provide email and password");
       return;
@@ -91,15 +112,27 @@ const Register = () => {
       return;
     }
 
-    // console.log("Registering", { role, name, email });
-    try{
-      // Registration logic here (e.g., API call)
+    try {
+      // Registration logic here
       let fullname = `${CustomerDetails.firstName} ${CustomerDetails.lastName}`;
-      await account.create({
+      const newCustomer = await account.create({
         userId: ID.unique(),
         email: CustomerDetails.email,
+        phone: CustomerDetails.phone,
         password: CustomerDetails.password,
         name: fullname,
+      });
+
+      await tablesDB.createRow({
+        databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID_USERS,
+        tableId: import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
+        rowId: newCustomer.$id,
+        data: {
+          name: fullname,
+          email: CustomerDetails.email,
+          role: "customer",
+          phone: CustomerDetails.phone,
+        },
       });
       alert("Registration successful!");
       setCustomerDetails({
@@ -108,11 +141,10 @@ const Register = () => {
         email: "",
         password: "",
         confirmPassword: "",
-      })
+      });
       if (role === "customer") {
         window.location.href = "/customer-dashboard";
-      }
-      else if (role === "tailor") {
+      } else if (role === "tailor") {
         window.location.href = "/tailor-dashboard";
       }
       navigate("/");
@@ -120,9 +152,6 @@ const Register = () => {
       console.error("Registration failed:", error);
       alert("Registration failed. Please try again.");
     }
-
-
-
   };
 
   return (
@@ -172,7 +201,6 @@ const Register = () => {
             >
               Tailor
             </button>
-           
           </div>
 
           {tab === "customer" && (
@@ -202,7 +230,7 @@ const Register = () => {
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
                 </div>
-                 <div>
+                <div>
                   <label
                     htmlFor="customer-name"
                     className="block text-sm font-medium text-gray-700"
@@ -233,6 +261,24 @@ const Register = () => {
                     name="email"
                     placeholder="sarah@example.com"
                     value={CustomerDetails.email}
+                    onChange={(e) => updateCustomerDetails(e)}
+                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="customer-phone"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Phone
+                  </label>
+                  <input
+                    id="customer-phone"
+                    type="tel"
+                    name="phone"
+                    placeholder="+1 555 555 5555"
+                    value={CustomerDetails.phone}
                     onChange={(e) => updateCustomerDetails(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />
@@ -304,7 +350,7 @@ const Register = () => {
                     htmlFor="tailor-name"
                     className="block text-sm font-medium text-gray-700"
                   >
-                   FirstName 
+                    FirstName
                   </label>
                   <input
                     id="tailor-name"
@@ -321,7 +367,7 @@ const Register = () => {
                     htmlFor="tailor-name"
                     className="block text-sm font-medium text-gray-700"
                   >
-                   LastName
+                    LastName
                   </label>
                   <input
                     id="tailor-name"
@@ -338,7 +384,7 @@ const Register = () => {
                     htmlFor="tailor-name"
                     className="block text-sm font-medium text-gray-700"
                   >
-                   Business Name
+                    Business Name
                   </label>
                   <input
                     id="tailor-business"
@@ -363,6 +409,42 @@ const Register = () => {
                     type="email"
                     placeholder="marcus@example.com"
                     value={tailorDetails.email}
+                    onChange={(e) => updateTailorDetails(e)}
+                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="tailor-phone"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Phone
+                  </label>
+                  <input
+                    id="tailor-phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="+1 555 555 5555"
+                    value={tailorDetails.phone}
+                    onChange={(e) => updateTailorDetails(e)}
+                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="tailor-location"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Location
+                  </label>
+                  <input
+                    id="tailor-location"
+                    name="location"
+                    type="text"
+                    placeholder="City, State or Address"
+                    value={tailorDetails.location}
                     onChange={(e) => updateTailorDetails(e)}
                     className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
                   />

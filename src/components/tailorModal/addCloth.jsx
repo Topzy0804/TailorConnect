@@ -91,9 +91,7 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
       const uploadedFiles = await Promise.all(
         images.map(async (img) => {
           if (!img) throw new Error("File not found in payload");
-          // log for debugging
           console.log("Uploading file:", img.name, img.type, img.size);
-          // uploadFile expects (bucketId, File) per new helper
           const uploaded = await uploadFile(
             import.meta.env.VITE_APPWRITE_BUCKET_ID,
             img
@@ -102,19 +100,22 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
         })
       );
 
+      // Map uploaded file docs to a minimal representation
+      // store only IDs (and a coverImageId) — ensure your Appwrite collection has 'imageIds' or adapt field names
+      const imageIds = uploadedFiles.map((f) => f.$id);
+      const coverImageId = imageIds[0] ?? null;
+
       const clothing = {
         title: title.trim(),
         description: description.trim(),
-        price: String(Number(price || 0).toFixed(2)), // Appwrite expects string as discussed
+        price: String(Number(price || 0).toFixed(2)),
         category: category.trim(),
         sizes,
         colors,
         available: available ? "available" : "unavailable",
-        images: uploadedFiles.map((f) => ({
-          $id: f.$id,
-          bucketId: f.bucketId,
-          name: f.name,
-        })), // store minimal file info
+        imageIds, // array of file IDs (make sure collection has this attribute)
+        coverImageId, // optional single id for quick display
+        tailorId: currentUser?.$id ?? null,
       };
 
       // ensure createRows exists or replace with your API call

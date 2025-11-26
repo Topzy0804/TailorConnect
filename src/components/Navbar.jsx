@@ -7,22 +7,8 @@ import { useUser } from "../auth/userContext";
 export const Navbar = ({ onToggleSidebar }) => {
   const { userType, setUserType } = useApp();
   const navigate = useNavigate();
-  const userData = useUser?.();
+  const userData = useUser();
   const setUser = userData?.setUser;
-
-  // const handleLogOut = async () => {
-  //   // Logic for logging out the user
-  //   try {
-  //     await account.deleteSession({
-  //       sessionId: "current",
-  //     });
-  //   } catch (err) {
-  //     console.warn("logout failed", err);
-  //   }
-
-  //   if (typeof setUser === "function") setUser(null);
-  //   navigate("/login");
-  // };
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -32,7 +18,7 @@ export const Navbar = ({ onToggleSidebar }) => {
             {/* call the prop instead of dispatching a window event */}
             <button
               aria-label="Toggle sidebar"
-              className="mr-3 p-2 rounded-md text-gray-600 hover:text-emerald-600 md:hidden"
+              className="mr-3 p-2 rounded-md text-gray-600 hover:text-emerald-600 "
               onClick={onToggleSidebar}
             >
               <svg

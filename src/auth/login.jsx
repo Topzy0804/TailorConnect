@@ -1,74 +1,69 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { account } from "../lib/appwrite";
-
+import { useNavigate, Link, Navigate } from "react-router-dom";
+import { account, tablesDB } from "../lib/appwrite";
 import { useUser } from "./userContext";
 
 export default function Login() {
-  const [tab, setTab] = useState("customer");
-  // useUser must be called inside component body; guard if no provider
-  const userData = useUser(); 
-  const {setUser} = userData;
+  const userData = useUser();
+  const setUser = userData?.setUser;
   const navigate = useNavigate();
 
-  const [tailorLoginDetails, setTailorLoginDetails] = useState({
+  const [loginDetails, setLoginDetails] = useState({
     email: "",
     password: "",
   });
 
-  const [customerLoginDetails, setCustomerLoginDetails] = useState({
-    email: "",
-    password: "",
-  });
+  const handleUpdate = (e) =>
+    setLoginDetails((s) => ({ ...s, [e.target.name]: e.target.value }));
 
-  const handleCustomerUpdate = (e) => {
-    setCustomerLoginDetails({
-      ...customerLoginDetails,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleTailorUpdate = (e) => {
-    setTailorLoginDetails({
-      ...tailorLoginDetails,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleTailorLogin = async (e, role) => {
-    e.preventDefault();
-
+  const handleLogin = async (e) => {
+    e?.preventDefault();
     try {
-      const user = await account.createEmailPasswordSession({
-        email: tailorLoginDetails.email,
-        password: tailorLoginDetails.password,
+      // create session (returns session object)
+      await account.createEmailPasswordSession({
+        email: loginDetails.email,
+        password: loginDetails.password,
       });
-      if (typeof setUser === "function") setUser(user);
-      else
-        console.warn("setUser is not available from context; skipping setUser");
 
-      if (role === "customer") navigate("/customer-dashboard");
-      else if (role === "tailor") navigate("/tailor-dashboard");
-    } catch (error) {
-      console.error("Login failed:", error);
-      alert("Login failed. Please try again.");
-    }
-  };
+      // fetch the actual user object (contains $id) after session is created
+      const currentUser = await account.get();
 
-  const handleCustomerLogin = async (e, role) => {
-    e.preventDefault();
+      // fetch profile row from your users table using the real user id
+      let userProfile = null;
+      try {
+        userProfile = await tablesDB.getRow({
+          databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID_USERS,
+          tableId: import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
+          rowId: currentUser.$id,
+        });
+      } catch (err) {
+        // row not found — handle gracefully (log, create profile on register, or fallback)
+        console.warn("User profile row not found for", currentUser.$id, err);
+      }
 
-    try {
-      const user = await account.createEmailPasswordSession({
-        email: customerLoginDetails.email,
-        password: customerLoginDetails.password,
-      });
-      if (typeof setUser === "function") setUser(user);
-      else
-        console.warn("setUser is not available from context; skipping setUser");
+      // if you don't have a profile row, create a minimal user object from account data
+      if (!userProfile) {
+        userProfile = {
+          email: currentUser.email || loginDetails.email,
+          role: "customer", // adjust default role if needed
+          fullName: currentUser.name || "",
+        };
+      }
 
-      if (role === "customer") navigate("/customer-dashboard");
-      else if (role === "tailor") navigate("/tailor-dashboard");
+      if (typeof setUser === "function") {
+        setUser({
+          email: userProfile.email,
+          role: userProfile.role,
+          $id: currentUser.$id,
+          name: userProfile.fullName,
+        });
+      }
+
+      if (userProfile.role === "customer") {
+        navigate("/customer-dashboard");
+        return;
+      }
+      navigate("/tailor-dashboard");
     } catch (error) {
       console.error("Login failed:", error);
       alert("Login failed. Please try again.");
@@ -80,7 +75,6 @@ export default function Login() {
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
-            {/* Simple inline scissors SVG to avoid external icon imports */}
             <svg
               className="w-10 h-10 text-emerald-600"
               viewBox="0 0 24 24"
@@ -105,211 +99,65 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Simple tabs implemented with state to avoid external UI dependencies */}
         <div className="w-full bg-white shadow rounded-lg p-6">
-          <div className="flex gap-2 mb-6">
+          <h2 className="text-lg font-medium mb-2">Sign In</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Browse designs, shop for custom clothing, and connect with tailors
+          </p>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                value={loginDetails.email}
+                onChange={handleUpdate}
+                className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+                required
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                value={loginDetails.password}
+                onChange={handleUpdate}
+                className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+                required
+              />
+            </div>
+
             <button
-              onClick={() => setTab("customer")}
-              className={`px-4 py-2 rounded ${
-                tab === "customer" ? "bg-emerald-600 text-white" : "bg-gray-100"
-              }`}
+              type="submit"
+              className="w-full bg-emerald-600 text-white px-4 py-2 rounded"
             >
-              Customer
+              Sign In
             </button>
-            <button
-              onClick={() => setTab("tailor")}
-              className={`px-4 py-2 rounded ${
-                tab === "tailor" ? "bg-emerald-600 text-white" : "bg-gray-100"
-              }`}
-            >
-              Tailor
-            </button>
-          </div>
 
-          {tab === "customer" && (
-            <div>
-              <h2 className="text-lg font-medium mb-2">Customer Login</h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Browse designs, shop for custom clothing, and connect with
-                tailors
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="customer-email"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Email
-                  </label>
-                  <input
-                    id="customer-email"
-                    name="email"
-                    type="email"
-                    placeholder="sarah@example.com"
-                    value={customerLoginDetails.email}
-                    onChange={(e) => handleCustomerUpdate(e)}
-                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="customer-password"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Password
-                  </label>
-                  <input
-                    id="customer-password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={customerLoginDetails.password}
-                    onChange={(e) => handleCustomerUpdate(e)}
-                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
-                  />
-                </div>
-
-                <button
-                  onClick={(e) => handleCustomerLogin(e, "customer")}
-                  className="w-full bg-emerald-600 text-white px-4 py-2 rounded"
-                >
-                  Sign In
-                </button>
-
-                <p className="text-center text-gray-600">
-                  don't have an account?{" "}
-                  <a
-                    href="/register"
-                    className="text-emerald-600 hover:underline"
-                  >
-                    Register here
-                  </a>
-                </p>
-              </div>
-            </div>
-          )}
-
-          {tab === "tailor" && (
-            <div>
-              <h2 className="text-lg font-medium mb-2">Tailor Login</h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Showcase your designs, manage orders, and grow your business
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="tailor-email"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Email
-                  </label>
-                  <input
-                    id="tailor-email"
-                    name="email"
-                    type="email"
-                    placeholder="marcus@example.com"
-                    value={tailorLoginDetails.email}
-                    onChange={(e) => handleTailorUpdate(e)}
-                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="tailor-password"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Password
-                  </label>
-                  <input
-                    id="tailor-password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={tailorLoginDetails.password}
-                    onChange={(e) => handleTailorUpdate(e)}
-                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
-                  />
-                </div>
-
-                <button
-                  onClick={(e) => handleTailorLogin(e, "tailor")}
-                  className="w-full bg-emerald-600 text-white px-4 py-2 rounded"
-                >
-                  Sign In
-                </button>
-
-                <p className="text-center text-gray-600">
-                  don't have an account?{" "}
-                  <a
-                    href="/register"
-                    className="text-emerald-600 hover:underline"
-                  >
-                    Register here
-                  </a>
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* {tab === "admin" && (
-            <div>
-              <h2 className="text-lg font-medium mb-2">Admin Login</h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Monitor platform performance and manage users
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="admin-email"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Email
-                  </label>
-                  <input
-                    id="admin-email"
-                    type="email"
-                    placeholder="admin@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="admin-password"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Password
-                  </label>
-                  <input
-                    id="admin-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
-                  />
-                </div>
-
-                <button
-                  onClick={() => handleLogin("admin")}
-                  className="w-full bg-emerald-600 text-white px-4 py-2 rounded"
-                >
-                  Sign In
-                </button>
-
-                <p className="text-center text-gray-600">
-                  Demo: Click "Sign In" to explore the admin dashboard
-                </p>
-              </div>
-            </div>
-          )} */}
+            <p className="text-center text-gray-600">
+              don't have an account?{" "}
+              <Link to="/register" className="text-emerald-600 hover:underline">
+                Register here
+              </Link>
+            </p>
+          </form>
         </div>
       </div>
     </div>

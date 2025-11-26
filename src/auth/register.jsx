@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { account, ID, tablesDB } from "../lib/appwrite";
 import { Phone } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Register = () => {
   const [tab, setTab] = useState("customer");
@@ -329,9 +330,9 @@ const Register = () => {
 
                 <p className="text-center text-gray-600">
                   already have an account?{" "}
-                  <a href="/login" className="text-emerald-600 hover:underline">
+                  <Link to="/login" className="text-emerald-600 hover:underline">
                     Sign in
-                  </a>
+                  </Link>
                 </p>
               </div>
             </div>
@@ -495,9 +496,10 @@ const Register = () => {
 
                 <p className="text-center text-gray-600">
                   already have an account?{" "}
-                  <a href="/login" className="text-emerald-600 hover:underline">
+                  
+                  <Link to="/login" className="text-emerald-600 hover:underline">
                     Sign in
-                  </a>
+                  </Link>
                 </p>
               </div>
             </div>

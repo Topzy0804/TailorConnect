@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useContext } from "react";
-import { account } from "../lib/appwrite";
+import { account, tablesDB } from "../lib/appwrite";
 
 const UserContext = createContext();
 
@@ -14,7 +14,18 @@ const UserProvider = ({ children }) => {
       try {
         const currentUser = await account.get();
         console.log("Current User:", currentUser);
-        setUser(currentUser);
+        const userProfile = await tablesDB.getRow({
+          databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID_USERS,
+          tableId: import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
+          rowId: currentUser.$id,
+        })
+        console.log("User Profile:", userProfile);
+        setUser({
+          email: userProfile.email,
+          role: userProfile.role,
+          $id: currentUser.$id,
+          name: userProfile.fullName,
+        });
       } catch (err) {
         // no active session or other error — keep user null
         console.warn("No logged in user", err);

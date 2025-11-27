@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useApp } from "../context";
 import { useUser } from "../auth/userContext";
+import { account } from "../lib/appwrite";
 
 // accept open and setOpen from parent (App) so Navbar can toggle directly
 export const Sidebar = ({
-  className = "",
   open = true,
   setOpen = () => {},
 }) => {
@@ -13,23 +12,18 @@ export const Sidebar = ({
 
   // call hooks normally (app should wrap with provider)
   const app = useApp();
-  const userData = useUser();
-  const currentUser = userData?.user ?? null;
-  const setUser = userData?.setUser;
-  const userType = app?.userType ?? "customer";
+  const {user, setUser} = useUser();
+  // const userType = app?.userType ?? "customer";
+  const userRole = user.role;
 
   // removed window event listener — parent now controls open state
-  const dashboardPath =
-    userType === "tailor" ? "/tailor-dashboard" : "/customer-dashboard";
+  const dashboardPath = userRole === "tailor" ? "/tailor-dashboard" : "/customer-dashboard";
 
   const handleLogout = async () => {
-    if (typeof setUser === "function") {
-      try {
-        setUser(null);
-      } catch (err) {
-        console.warn("setUser failed", err);
-      }
-    }
+    await account.deleteSession({
+      sessionId: "current",
+    });
+    setUser(null);
     navigate("/login");
   };
 
@@ -63,7 +57,7 @@ export const Sidebar = ({
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r h-full ${className} md:sticky md:top-0 md:h-screen`}
+      className={`fixed h-[calc(100vh)] inset-y-0 left-0 z-40 w-64 bg-white border-r md:top-0`}
       aria-label="Sidebar"
     >
       <div className="flex flex-col h-full">
@@ -196,17 +190,13 @@ export const Sidebar = ({
 
         <div className="px-3 py-4 border-t">
           <button
-            onClick={currentUser ? handleLogout : () => navigate("/login")}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded ${
-              currentUser
-                ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                : "bg-white text-gray-800 border"
-            }`}
+            onClick={ () => handleLogout() }
+            className='w-full flex items-center gap-3 px-3 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700'
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M16 13v-2H7V8l-5 4 5 4v-3zM20 3h-8v2h8v14h-8v2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" />
             </svg>
-            <span>{currentUser ? "Sign out" : "Sign in"}</span>
+            <span>Sign out</span>
           </button>
         </div>
       </div>

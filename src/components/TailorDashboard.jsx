@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Plus,
   Package,
@@ -8,16 +9,16 @@ import {
   Trash2,
 } from "lucide-react";
 import { mockOrders, mockDesigns } from "../data";
-import React, { useState, useEffect } from "react";
 import AddCloth from "./tailorModal/addCloth";
+import { tablesDB } from "../lib/appwrite";
+import { useUser } from "../auth/userContext"; // added
 
 export const TailorDashboard = () => {
+  const {user} = useUser();
   const [activeTab, setActiveTab] = useState("orders");
-  const [statusFilter, setStatusFilter] = useState(""); // new
-
+  const [statusFilter, setStatusFilter] = useState("");
   const tailorOrders = mockOrders.filter((o) => o.tailorId === "1");
   const tailorDesigns = mockDesigns.filter((d) => d.tailorId === "1");
-
   const totalRevenue = tailorOrders.reduce((sum, o) => sum + o.totalAmount, 0);
   const activeOrders = tailorOrders.filter(
     (o) => o.status === "pending" || o.status === "in_progress"
@@ -25,18 +26,21 @@ export const TailorDashboard = () => {
 
   const [isAddClothOpen, setIsAddClothOpen] = useState(false);
 
-  const handleAddClothClose = () => {
-    setIsAddClothOpen(false);
-  };
+  const handleAddClothClose = () => setIsAddClothOpen(false);
+
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold mb-2">Tailor Dashboard</h1>
+          <h1 className="text-4xl font-bold mb-2">
+            {`Welcome ${user?.name}`}
+          </h1>
           <p className="text-emerald-50 text-lg">
-            Manage your designs, orders, and business
+            
+            Dashboard
           </p>
+          {/* <p>{currentUser?.businessName ?? userDetails?.businessName}</p> */}
         </div>
       </div>
 

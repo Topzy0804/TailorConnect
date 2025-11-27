@@ -13,18 +13,18 @@ const UserProvider = ({ children }) => {
     const getLoggedInUser = async () => {
       try {
         const currentUser = await account.get();
-        console.log("Current User:", currentUser);
+
         const userProfile = await tablesDB.getRow({
-          databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID_USERS,
+          databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
           tableId: import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
           rowId: currentUser.$id,
         })
-        console.log("User Profile:", userProfile);
+
         setUser({
           email: userProfile.email,
           role: userProfile.role,
-          $id: currentUser.$id,
-          name: userProfile.fullName,
+          $id: userProfile.$id,
+          name: userProfile.name,
         });
       } catch (err) {
         // no active session or other error — keep user null

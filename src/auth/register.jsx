@@ -59,7 +59,6 @@ const Register = () => {
       let fullname = `${tailorDetails.firstName} ${tailorDetails.lastName}`;
       const newTailor = await account.create({
         userId: ID.unique(),
-        businessName: tailorDetails.businessName,
         email: tailorDetails.email,
         phone: tailorDetails.phone,
         password: tailorDetails.password,
@@ -67,7 +66,7 @@ const Register = () => {
       });
 
       await tablesDB.createRow({
-        databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID_USERS,
+        databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
         tableId: import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
         rowId: newTailor.$id,
         data: {
@@ -90,12 +89,8 @@ const Register = () => {
         password: "",
         confirmPassword: "",
       });
-      if (role === "customer") {
-        window.location.href = "/customer-dashboard";
-      } else if (role === "tailor") {
-        window.location.href = "/tailor-dashboard";
-      }
-      navigate("/");
+      
+      navigate("/login");
     } catch (error) {
       console.error("Registration failed:", error);
       alert("Registration failed. Please try again.");
@@ -125,7 +120,7 @@ const Register = () => {
       });
 
       await tablesDB.createRow({
-        databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID_USERS,
+        databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
         tableId: import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
         rowId: newCustomer.$id,
         data: {
@@ -143,12 +138,8 @@ const Register = () => {
         password: "",
         confirmPassword: "",
       });
-      if (role === "customer") {
-        window.location.href = "/customer-dashboard";
-      } else if (role === "tailor") {
-        window.location.href = "/tailor-dashboard";
-      }
-      navigate("/");
+      
+      navigate("/login");
     } catch (error) {
       console.error("Registration failed:", error);
       alert("Registration failed. Please try again.");

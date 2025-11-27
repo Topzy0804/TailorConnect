@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link, Navigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { account, tablesDB } from "../lib/appwrite";
 import { useUser } from "./userContext";
 
@@ -17,56 +17,32 @@ export default function Login() {
     setLoginDetails((s) => ({ ...s, [e.target.name]: e.target.value }));
 
   const handleLogin = async (e) => {
-    e?.preventDefault();
+    e.preventDefault();
     try {
       // create session (returns session object)
-      await account.createEmailPasswordSession({
+      const currentUser = await account.createEmailPasswordSession({
         email: loginDetails.email,
         password: loginDetails.password,
       });
 
-      // fetch the actual user object (contains $id) after session is created
-      const currentUser = await account.get();
-
       // fetch profile row from your users table using the real user id
-      let userProfile = null;
-      try {
-        userProfile = await tablesDB.getRow({
-          databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID_USERS,
-          tableId: import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
-          rowId: currentUser.$id,
-        });
-      } catch (err) {
-        // row not found — handle gracefully (log, create profile on register, or fallback)
-        console.warn("User profile row not found for", currentUser.$id, err);
-      }
+      let userProfile = await tablesDB.getRow({
+        databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
+        tableId: import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
+        rowId: currentUser.userId,
+      });
 
-      // if you don't have a profile row, create a minimal user object from account data
-      if (!userProfile) {
-        userProfile = {
-          email: currentUser.email || loginDetails.email,
-          role: "customer", // adjust default role if needed
-          fullName: currentUser.name || "",
-        };
-      }
+      setUser({
+        email: userProfile.email,
+        role: userProfile.role,
+        $id: userProfile.$id,
+        name: userProfile.name,
+      });
 
-      if (typeof setUser === "function") {
-        setUser({
-          email: userProfile.email,
-          role: userProfile.role,
-          $id: currentUser.$id,
-          name: userProfile.fullName,
-        });
-      }
-
-      if (userProfile.role === "customer") {
-        navigate("/customer-dashboard");
-        return;
-      }
-      navigate("/tailor-dashboard");
+      navigate(`/${userProfile.role}-dashboard`);
     } catch (error) {
-      console.error("Login failed:", error);
-      alert("Login failed. Please try again.");
+      console.error("Login failed:", error.message);
+      // alert("Login failed. Please try again.");
     }
   };
 

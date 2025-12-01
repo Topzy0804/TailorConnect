@@ -10,11 +10,12 @@ import {
 } from "lucide-react";
 import { mockOrders, mockDesigns } from "../data";
 import AddCloth from "./tailorModal/addCloth";
-import { tablesDB } from "../lib/appwrite";
-import { useUser } from "../auth/userContext"; // added
+import { useUser } from "../auth/userContext";
+import { getRows } from "../utils/db";
+import NewDesign from "./newDesign";
 
 export const TailorDashboard = () => {
-  const {user} = useUser();
+  const { user } = useUser();
   const [activeTab, setActiveTab] = useState("orders");
   const [statusFilter, setStatusFilter] = useState("");
   const tailorOrders = mockOrders.filter((o) => o.tailorId === "1");
@@ -23,23 +24,33 @@ export const TailorDashboard = () => {
   const activeOrders = tailorOrders.filter(
     (o) => o.status === "pending" || o.status === "in_progress"
   ).length;
+  const [designs, setDesigns] = useState([]);
 
   const [isAddClothOpen, setIsAddClothOpen] = useState(false);
 
   const handleAddClothClose = () => setIsAddClothOpen(false);
 
+  useEffect(() => {
+    
+    const fetchTailorData = async () => {
+      try {
+        const response = await getRows(import.meta.env.VITE_TAILORS_TABLE_ID);
+        setDesigns(response.rows);
+        console.log("Tailor data fetched:", response.rows);
+      } catch (error) {
+        console.error("Error fetching tailor data:", error);
+      }
+    };
+
+    fetchTailorData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold mb-2">
-            {`Welcome ${user?.name}`}
-          </h1>
-          <p className="text-emerald-50 text-lg">
-            
-            Dashboard
-          </p>
+          <h1 className="text-4xl font-bold mb-2">{`Welcome ${user?.name}`}</h1>
+          <p className="text-emerald-50 text-lg">Dashboard</p>
           {/* <p>{currentUser?.businessName ?? userDetails?.businessName}</p> */}
         </div>
       </div>
@@ -211,46 +222,12 @@ export const TailorDashboard = () => {
             </div>
           ) : (
             <div className="grid md:grid-cols-3 gap-6 p-6">
-              {tailorDesigns.map((design) => (
-                <div
-                  key={design.id}
-                  className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={design.images[0]}
-                      alt={design.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  <div className="p-4">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">
-                      {design.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                      {design.description}
-                    </p>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-xl font-bold text-gray-900">
-                        ${(design.price / 100).toFixed(2)}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {design.category}
-                      </span>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
-                        <Edit className="w-4 h-4" />
-                        Edit
-                      </button>
-                      <button className="bg-red-50 text-red-600 p-2 rounded-lg hover:bg-red-100 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              
+                {
+                  /* Additional content can go here if needed */
+                  <NewDesign designs={designs} />
+                }
+            
             </div>
           )}
         </div>

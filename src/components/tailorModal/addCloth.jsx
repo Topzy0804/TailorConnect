@@ -1,20 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useUser } from "../../auth/userContext";
 import { useApp } from "../../context";
-// import your DB helper here (replace with actual path)
-import { createRows, uploadFile } from "../../utils/db";
-/**
- * AddCloth modal — allows creating a sale item or design.
- * Props:
- *  - onClose: () => void
- *  - initialMode: "sale" | "design"
- */
+import { createRows } from "../../utils/db";
+import {  uploadFile } from "../../utils/storage";
+
+
+
 export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
-  const navigate = useNavigate();
   const userData = useUser();
   const currentUser = userData?.user ?? null;
-  const app = useApp();
 
   const [mode, setMode] = useState(initialMode);
   useEffect(() => setMode(initialMode), [initialMode]);
@@ -26,7 +20,7 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
   const [sizes, setSizes] = useState([]);
   const [colors, setColors] = useState([]);
   const [available, setAvailable] = useState(true);
-  const [images, setImages] = useState([]);
+  const [image, setImage] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -49,13 +43,13 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
     };
   }, [imagePreviews]);
 
-  const handleFiles = (files) => {
-    const fileArray = Array.from(files).slice(0, 6);
-    setImages(fileArray);
-    const previews = fileArray.map((file) => URL.createObjectURL(file));
+  const handleFiles = (file) => {
+    console.log(file);
+    setImage(file);
+    const preview = URL.createObjectURL(file);
     // revoke any prior previews
     imagePreviews.forEach((url) => URL.revokeObjectURL(url));
-    setImagePreviews(previews);
+    setImagePreviews([preview]);
   };
 
   const toggleSize = (s) =>
@@ -72,7 +66,7 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
     if (mode === "sale" && (!price || Number(price) <= 0))
       return "Valid price is required for sale items.";
     if (!category.trim()) return "Category is required.";
-    if (images.length === 0) return "At least one image is required.";
+    if (!image) return "At least one image is required.";
     return null;
   };
 
@@ -87,24 +81,27 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
 
     setSubmitting(true);
     try {
+
+      let imageURL = null
       // Upload files and keep returned file documents
-      const uploadedFiles = await Promise.all(
-        images.map(async (img) => {
-          if (!img) throw new Error("File not found in payload");
-          console.log("Uploading file:", img.name, img.type, img.size);
           const uploaded = await uploadFile(
             import.meta.env.VITE_APPWRITE_BUCKET_ID,
-            img
+            image
           );
-          return uploaded;
-        })
-      );
+
+          console.log("Uploaded file:", uploaded);
+      
+
+      // Build public view/download URLs for each uploaded file (Appwrite storage endpoints)
+      const endpoint = import.meta.env.VITE_APPWRITE_ENDPOINT ;
+      const projectId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
+      const bucketId = import.meta.env.VITE_APPWRITE_BUCKET_ID;
+      const fileId = uploaded.$id;
+
+      const fileViewUrl =  `${endpoint}/storage/buckets/${bucketId}/files/${fileId}/view?project=${projectId}`;
+      imageURL = fileViewUrl;
 
       // Map uploaded file docs to a minimal representation
-      // store only IDs (and a coverImageId) — ensure your Appwrite collection has 'imageIds' or adapt field names
-      const imageIds = uploadedFiles.map((f) => f.$id);
-      const coverImageId = imageIds[0] ?? null;
-
       const clothing = {
         title: title.trim(),
         description: description.trim(),
@@ -113,22 +110,16 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
         sizes,
         colors,
         available: available ? "available" : "unavailable",
-        imageIds, // array of file IDs (make sure collection has this attribute)
-        coverImageId, // optional single id for quick display
+        imageURL,
         tailorId: currentUser?.$id ?? null,
       };
-
-      // ensure createRows exists or replace with your API call
-      if (typeof createRows !== "function") {
-        throw new Error("createRows is not defined. Import your DB helper.");
-      }
 
       await createRows(import.meta.env.VITE_APPWRITE_TABLE_ID, clothing);
 
       // cleanup previews
       imagePreviews.forEach((url) => URL.revokeObjectURL(url));
       setImagePreviews([]);
-      setImages([]);
+      setImage([]);
 
       // reset local state
       setTitle("");
@@ -138,11 +129,9 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
       setSizes([]);
       setColors([]);
       setAvailable(true);
-
       onClose();
-      navigate("/tailor-dashboard");
     } catch (err) {
-      console.error("Upload failed:", err);
+      console.error("Upload failed:", err.message);
       setError(err.message || "Upload failed. Try again.");
     } finally {
       setSubmitting(false);
@@ -262,13 +251,12 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
 
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700">
-              Images (max 6)
+              Images
             </label>
             <input
               type="file"
               accept="image/*"
-              multiple
-              onChange={(e) => handleFiles(e.target.files)}
+              onChange={(e) => handleFiles(e.target.files[0])}
               className="mt-1 block w-full"
             />
 

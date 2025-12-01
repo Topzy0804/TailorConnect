@@ -41,13 +41,6 @@ export const fetchRow = async (tableId, rowId) => {
   return response;
 };
 
-export const uploadFile = async (bucketId, file) => {
-  const response = await storage.createFile({
-    bucketId: bucketId,
-    fileId: ID.unique(),
-    file: file
-  });
-  return response;
-};
+
 // export Query so callers can build queries consistently
 export { Query };

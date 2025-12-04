@@ -1,24 +1,40 @@
-import { Scissors, User, MessageSquare, ShoppingBag } from "lucide-react";
+import React, { useState } from "react";
+import {
+  Scissors,
+  Menu,
+  X,
+  Search,
+  ShoppingBag,
+  User as UserIcon,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useApp } from "../context";
-import { account } from "../lib/appwrite";
+// import { useApp } from "../context";
+// import { account } from "../lib/appwrite";
 import { useUser } from "../auth/userContext";
 
-export const Navbar = ({ onToggleSidebar }) => {
-  const { userType, setUserType } = useApp();
+export const Navbar = ({ onToggleSidebar = () => {} }) => {
   const navigate = useNavigate();
-  const userData = useUser();
-  const setUser = userData?.setUser;
+  const { user: currentUser, setUser } = useUser() ?? {};
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // const handleLogout = async () => {
+  //   try {
+  //     await account.deleteSession("current");
+  //   } catch (e) {
+  //     /* ignore errors */
+  //   }
+  //   if (typeof setUser === "function") setUser(null);
+  //   navigate("/login");
+  // };
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <header className="bg-white shadow-sm sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            {/* call the prop instead of dispatching a window event */}
             <button
               aria-label="Toggle sidebar"
-              className="mr-3 p-2 rounded-md text-gray-600 hover:text-emerald-600 "
+              className="mr-3 p-2 rounded-md text-gray-600 hover:text-emerald-600"
               onClick={onToggleSidebar}
             >
               <svg
@@ -47,41 +63,107 @@ export const Navbar = ({ onToggleSidebar }) => {
             </div>
           </div>
 
-          {/* <div className="flex items-center gap-6">
+          <nav className="hidden lg:flex items-center space-x-8">
+          <Link to="/" className="text-sm tracking-wide hover:text-gray-600">
+              HOME
+            </Link>
+            <Link to="/shop" className="text-sm tracking-wide hover:text-gray-600">
+              SHOP
+            </Link>
+          </nav>
+
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate("/browse")}
-              className="text-gray-700 hover:text-emerald-600 font-medium transition-colors"
+              className="p-2 hover:bg-gray-50 rounded-lg"
+              aria-label="Search"
             >
-              Browse Tailors
+              <Search size={20} />
             </button>
+
             <button
-              onClick={() => navigate("/chat")}
-              className="text-gray-700 hover:text-emerald-600 transition-colors"
+              className="p-2 hover:bg-gray-50 rounded-lg"
+              aria-label="Cart"
+              // onClick={() => navigate("/checkout")}
             >
-              <MessageSquare className="w-5 h-5" />
+            <Link to="/cart">
+              <ShoppingBag size={20} />
+            </Link>
             </button>
-            <button
-              onClick={() =>
-                navigate(
-                  userType === "customer"
-                    ? "/customer-dashboard"
-                    : "/tailor-dashboard"
-                )
-              }
-              className="text-gray-700 hover:text-emerald-600 transition-colors"
-            >
-              <ShoppingBag className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-2 border-l pl-6">
-              <Link to="/login">Login</Link>
-              <button className="bg-emerald-600 text-white p-2 rounded-full hover:bg-emerald-700 transition-colors">
-                <User className="w-5 h-5" />
-              </button>
+
+            <div className="hidden sm:flex items-center gap-3">
+              {currentUser ? (
+                <>
+                  <button
+                    onClick={() => navigate("/profile")}
+                    className="flex items-center gap-2 text-sm text-gray-700 hover:text-emerald-600"
+                  >
+                    <UserIcon className="w-5 h-5" />
+                    <span>{currentUser?.name ?? currentUser?.email}</span>
+                  </button>
+                  {/* <button
+                    onClick={handleLogout}
+                    className="text-sm text-gray-600 px-3 py-1 rounded hover:bg-red-50"
+                  >
+                    Sign out
+                  </button> */}
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="text-sm text-emerald-600 hover:underline flex items-center gap-2"
+                >
+                  <UserIcon className="w-5 h-5" /> Sign in
+                </Link>
+              )}
             </div>
-            <div></div>
-          </div> */}
+
+            {/* <button
+              className="lg:hidden p-2 ml-2 rounded-md text-gray-600 hover:text-emerald-600"
+              onClick={() => setMobileMenuOpen((s) => !s)}
+              aria-expanded={mobileMenuOpen}
+              aria-label="Open mobile menu"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button> */}
+          </div>
         </div>
+
+        {/* {mobileMenuOpen && (
+          <div className="lg:hidden border-t border-gray-100 bg-white">
+            <nav className="px-4 py-4 space-y-3">
+              <Link to="#men" className="block text-sm text-gray-700">
+                MEN
+              </Link>
+              <Link to="#women" className="block text-sm text-gray-700">
+                WOMEN
+              </Link>
+              <Link to="#kids" className="block text-sm text-gray-700">
+                KIDS
+              </Link>
+              <Link to="#new" className="block text-sm text-gray-700">
+                NEW ARRIVALS
+              </Link>
+
+              <div className="pt-2 border-t mt-2">
+                {currentUser ? (
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left text-sm text-gray-700"
+                  >
+                    Sign out
+                  </button>
+                ) : (
+                  <Link to="/login" className="block text-sm text-emerald-600">
+                    Sign in
+                  </Link>
+                )}
+              </div>
+            </nav>
+          </div>
+        )} */}
       </div>
-    </nav>
+    </header>
   );
 };
+
+export default Navbar;

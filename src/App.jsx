@@ -15,21 +15,25 @@ import { BrowseTailors } from "./components/BrowseTailors";
 import { Home } from "./components/Home";
 import Login from "./auth/login";
 import Register from "./auth/register";
+import Shop from "./components/Shop";
+import Cart from "./components/cart";
 
 import { UserProvider } from "./auth/userContext";
+import { CartProvider } from "./context/cartContext";
 
 import MainLayout from "./layout/MainLayout";
 import AuthLayout from "./layout/AuthLayout";
+import FooterWrapper from "./layout/footerWrapper";
 
 function App() {
   return (
     <UserProvider>
       <Router>
         <AppProvider>
+        <CartProvider>
           <Routes>
-            {/* main app routes with chrome */}
-            <Route path="/" element={<Home />} />
             <Route element={<MainLayout />}>
+
               <Route path="/browse" element={<BrowseTailors />} />
               <Route path="/tailor/:id" element={<TailorProfile />} />
               <Route
@@ -37,8 +41,17 @@ function App() {
                 element={<CustomerDashboard />}
               />
               <Route path="/tailor-dashboard" element={<TailorDashboard />} />
+
+              
+              <Route element={<FooterWrapper />}>
+            <Route path="/" element={<Home />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/shop" element={<Shop />} />
+              <Route path="/cart" element={<Cart />} />
+
+
+              </Route>
             </Route>
 
             {/* auth routes without chrome */}
@@ -50,6 +63,7 @@ function App() {
             {/* fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </CartProvider> 
         </AppProvider>
       </Router>
     </UserProvider>

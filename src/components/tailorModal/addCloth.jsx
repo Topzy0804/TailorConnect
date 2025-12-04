@@ -24,6 +24,7 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [gender, setGender] = useState("Men");
 
   const sizeOptions = ["XS", "S", "M", "L", "XL", "XXL"];
   const colorOptions = [
@@ -35,6 +36,8 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
     "Yellow",
     "Custom",
   ];
+
+
 
   useEffect(() => {
     // cleanup preview URLs on unmount
@@ -65,7 +68,7 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
     if (!title.trim()) return "Title is required.";
     if (mode === "sale" && (!price || Number(price) <= 0))
       return "Valid price is required for sale items.";
-    if (!category.trim()) return "Category is required.";
+    // if (!category.trim()) return "Category is required.";
     if (!image) return "At least one image is required.";
     return null;
   };
@@ -112,9 +115,10 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
         available: available ? "available" : "unavailable",
         imageURL,
         tailorId: currentUser?.$id ?? null,
+        gender: gender ? "Men" : "Women",
       };
 
-      await createRows(import.meta.env.VITE_APPWRITE_TABLE_ID, clothing);
+      await createRows(import.meta.env.VITE_TAILORS_TABLE_ID, clothing);
 
       // cleanup previews
       imagePreviews.forEach((url) => URL.revokeObjectURL(url));
@@ -195,14 +199,23 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Category
+              Gender
             </label>
-            <input
+            <select
+              value={gender === "Men" ? "Men" : "Women"}
+              onChange={(e) => setGender(e.target.value === "Men")}
+              className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+            >
+              <option value="Men">Men</option>
+              <option value="Women">Women</option>
+              <option value="Kids">Kids</option>
+            </select>
+            {/* <input
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
               placeholder="Shirts, Dresses, Suits..."
-            />
+            /> */}
           </div>
 
           {mode === "sale" && (
@@ -250,6 +263,7 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
           </div>
 
           <div className="md:col-span-2">
+          <div>
             <label className="block text-sm font-medium text-gray-700">
               Images
             </label>
@@ -271,9 +285,23 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
                     alt={`preview-${i}`}
                     className="object-cover w-full h-24"
                   />
+
                 </div>
               ))}
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Category
+            </label>
+            <input 
+            type="text"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+            placeholder="shirts, dresses, suits..."
+             />
+          </div>
           </div>
 
           <div>

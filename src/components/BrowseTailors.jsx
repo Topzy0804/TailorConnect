@@ -2,11 +2,26 @@ import { Search, MapPin, Star, Filter } from 'lucide-react';
 import { useState } from 'react';
 import { mockTailors, mockDesigns } from '../data';
 import { useApp } from '../context';
+import { getRows } from '../utils/db';
+import NewTailor from './newTailor';
 
 export const BrowseTailors = () => {
   const { setCurrentView, setSelectedTailorId } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [experts, setExperts] = useState([]);
+
+
+  const fetchExperts = async () => {
+    try {
+      // Fetch experts from an API or database
+      const response = await getRows(import.meta.env.VITE_APPWRITE_TABLE_ID_USERS)
+      setExperts(response.rows);
+      console.log('Fetched experts:', response.rows);
+    } catch (error) {
+      console.error('Error fetching experts:', error);
+    }
+  }
 
   const categories = ['all', 'African Wear', 'Suits', 'Contemporary Fashion', 'Indian Wear'];
 
@@ -84,77 +99,9 @@ export const BrowseTailors = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTailors.map((tailor) => {
-              const tailorDesigns = mockDesigns.filter((d) => d.tailorId === tailor.id);
-              return (
-                <div
-                  key={tailor.id}
-                  onClick={() => handleTailorClick(tailor.id)}
-                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group"
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={tailor.coverImage}
-                      alt={tailor.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <img
-                      src={tailor.avatar}
-                      alt={tailor.name}
-                      className="absolute bottom-4 left-4 w-16 h-16 rounded-full border-4 border-white object-cover"
-                    />
-                  </div>
 
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-1">
-                          {tailor.name}
-                        </h3>
-                        <div className="flex items-center gap-1 text-gray-600 text-sm">
-                          <MapPin className="w-4 h-4" />
-                          <span>{tailor.location}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-lg">
-                        <Star className="w-4 h-4 text-emerald-600 fill-emerald-600" />
-                        <span className="text-sm font-semibold text-emerald-700">
-                          {tailor.rating}
-                        </span>
-                      </div>
-                    </div>
+          {<NewTailor experts={experts} onTailorClick={handleTailorClick}></NewTailor>}
 
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{tailor.bio}</p>
-
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {tailor.specialties.slice(0, 2).map((specialty) => (
-                        <span
-                          key={specialty}
-                          className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium"
-                        >
-                          {specialty}
-                        </span>
-                      ))}
-                      {tailor.specialties.length > 2 && (
-                        <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">
-                          +{tailor.specialties.length - 2}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <span className="text-sm text-gray-600">
-                        {tailor.yearsOfExperience} years experience
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {tailorDesigns.length} designs
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>

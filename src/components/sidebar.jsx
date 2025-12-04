@@ -4,20 +4,19 @@ import { useUser } from "../auth/userContext";
 import { account } from "../lib/appwrite";
 
 // accept open and setOpen from parent (App) so Navbar can toggle directly
-export const Sidebar = ({
-  open = true,
-  setOpen = () => {},
-}) => {
+export const Sidebar = ({ open = true, setOpen = () => {} }) => {
   const navigate = useNavigate();
 
   // call hooks normally (app should wrap with provider)
   const app = useApp();
-  const {user, setUser} = useUser();
-  // const userType = app?.userType ?? "customer";
-  const userRole = user.role;
+  const userContext = useUser();
+  const { user, setUser } = userContext ?? {};
+  // prefer authenticated user's role, fall back to app context, then default to "customer"
+  const userRole = user?.role ?? app?.userRole ?? "customer";
 
   // removed window event listener — parent now controls open state
-  const dashboardPath = userRole === "tailor" ? "/tailor-dashboard" : "/customer-dashboard";
+  const dashboardPath =
+    userRole === "tailor" ? "/tailor-dashboard" : "/customer-dashboard";
 
   const handleLogout = async () => {
     await account.deleteSession({
@@ -108,6 +107,19 @@ export const Sidebar = ({
           <ul className="space-y-1">
             <li>
               <Link
+                to="/"
+                className="flex items-center gap-3 px-3 py-2 rounded hover:bg-emerald-50 text-gray-700 lg:hidden"
+              >
+                <svg
+                  className="w-5 h-5 text-emerald-600"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5z" />
+                </svg>
+                <span>Home</span>
+              </Link>
+              <Link
                 to={dashboardPath}
                 className="flex items-center gap-3 px-3 py-2 rounded hover:bg-emerald-50 text-gray-700"
               >
@@ -122,21 +134,23 @@ export const Sidebar = ({
               </Link>
             </li>
 
-            <li>
-              <Link
-                to="/browse"
-                className="flex items-center gap-3 px-3 py-2 rounded hover:bg-emerald-50 text-gray-700"
-              >
-                <svg
-                  className="w-5 h-5 text-emerald-600"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
+            {userRole !== "tailor" && (
+              <li>
+                <Link
+                  to="/browse"
+                  className="flex items-center gap-3 px-3 py-2 rounded hover:bg-emerald-50 text-gray-700"
                 >
-                  <path d="M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z" />
-                </svg>
-                <span>Browse Tailors</span>
-              </Link>
-            </li>
+                  <svg
+                    className="w-5 h-5 text-emerald-600"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z" />
+                  </svg>
+                  <span>Browse Tailors</span>
+                </Link>
+              </li>
+            )}
 
             <li>
               <Link
@@ -190,8 +204,8 @@ export const Sidebar = ({
 
         <div className="px-3 py-4 border-t">
           <button
-            onClick={ () => handleLogout() }
-            className='w-full flex items-center gap-3 px-3 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700'
+            onClick={() => handleLogout()}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M16 13v-2H7V8l-5 4 5 4v-3zM20 3h-8v2h8v14h-8v2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" />

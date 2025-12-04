@@ -3,7 +3,7 @@ import { Outlet, Navigate } from "react-router-dom";
 import { useUser } from "../auth/userContext";
 import Sidebar from "../components/sidebar";
 import { Navbar } from "../components";
-import Footer from "../components/footer";
+// import Footer from "../components/footer";
 
 function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);

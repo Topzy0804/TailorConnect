@@ -1,45 +1,64 @@
-import { Search, MapPin, Star, Filter } from 'lucide-react';
-import { useState } from 'react';
-import { mockTailors, mockDesigns } from '../data';
-import { useApp } from '../context';
-import { getRows } from '../utils/db';
-import NewTailor from './newTailor';
+import { Search, MapPin, Star, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+// import { mockTailors } from "../data";
+import { useApp } from "../context";
+import { getRows } from "../utils/db";
+import NewTailor from "./newTailor";
+import { Query } from "appwrite";
 
 export const BrowseTailors = () => {
   const { setCurrentView, setSelectedTailorId } = useApp();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [experts, setExperts] = useState([]);
 
+  useEffect(() => {
+    fetchExperts();
+  }, []);
 
   const fetchExperts = async () => {
     try {
-      // Fetch experts from an API or database
-      const response = await getRows(import.meta.env.VITE_APPWRITE_TABLE_ID_USERS)
-      setExperts(response.rows);
-      console.log('Fetched experts:', response.rows);
+      const response = await getRows(
+        import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
+        [Query.equal("role", "tailor")]
+      );
+      setExperts(response.rows || []);
+      console.log("Fetched experts:", response.rows);
     } catch (error) {
-      console.error('Error fetching experts:', error);
+      console.error("Error fetching experts:", error);
+      // Fallback to mock data if fetch fails
+      // setExperts(mockTailors);
     }
-  }
+  };
 
-  const categories = ['all', 'African Wear', 'Suits', 'Contemporary Fashion', 'Indian Wear'];
+  const categories = [
+    "all",
+    "African Wear",
+    "Suits",
+    "Contemporary Fashion",
+    "Indian Wear",
+  ];
 
-  const filteredTailors = mockTailors.filter((tailor) => {
+  const filteredTailors = experts.filter((tailor) => {
     const matchesSearch =
-      tailor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tailor.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tailor.specialties.some((s) => s.toLowerCase().includes(searchQuery.toLowerCase()));
+      (tailor.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (tailor.location || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      (tailor.specialties || []).some((s) =>
+        s.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
     const matchesCategory =
-      selectedCategory === 'all' || tailor.specialties.includes(selectedCategory);
+      selectedCategory === "all" ||
+      (tailor.specialties || []).includes(selectedCategory);
 
     return matchesSearch && matchesCategory;
   });
 
   const handleTailorClick = (tailorId) => {
     setSelectedTailorId(tailorId);
-    setCurrentView('tailor-profile');
+    setCurrentView("tailor-profile");
   };
 
   return (
@@ -81,11 +100,11 @@ export const BrowseTailors = () => {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   selectedCategory === category
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? "bg-emerald-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                {category === 'all' ? 'All Categories' : category}
+                {category === "all" ? "All Categories" : category}
               </button>
             ))}
           </div>
@@ -98,10 +117,12 @@ export const BrowseTailors = () => {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-          {<NewTailor experts={experts} onTailorClick={handleTailorClick}></NewTailor>}
-
+          {/* Larger cards: fewer columns on wide screens, bigger gap */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+            <NewTailor
+              experts={filteredTailors}
+              onTailorClick={handleTailorClick}
+            />
           </div>
         </div>
       </div>

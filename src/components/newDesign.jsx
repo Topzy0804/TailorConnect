@@ -31,7 +31,7 @@ export default function NewDesign({ designs }) {
 
             <div className="flex items-center justify-between mb-4">
               <span className="text-xl font-bold text-gray-900">
-                ${(design.price / 100).toFixed(2)}
+                ${(design.price / 1).toFixed(2)}
               </span>
               <span className="text-sm text-gray-600">{design.category}</span>
 

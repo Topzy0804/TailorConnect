@@ -24,6 +24,7 @@ import { CartProvider } from "./context/cartContext";
 import MainLayout from "./layout/MainLayout";
 import AuthLayout from "./layout/AuthLayout";
 import FooterWrapper from "./layout/footerWrapper";
+import ProfileHeader from "./components/profile";
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
                 element={<CustomerDashboard />}
               />
               <Route path="/tailor-dashboard" element={<TailorDashboard />} />
+              <Route path="/profile" element={<ProfileHeader />} />
 
               
               <Route element={<FooterWrapper />}>

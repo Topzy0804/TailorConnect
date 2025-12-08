@@ -1,4 +1,4 @@
-import { ID, Client, Account, Teams, TablesDB, Storage } from "appwrite";
+import { ID, Client, Account, Teams, TablesDB, Storage, } from "appwrite";
 
 const client = new Client();
 

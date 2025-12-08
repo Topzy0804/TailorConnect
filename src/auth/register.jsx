@@ -24,6 +24,9 @@ const Register = () => {
     email: "",
     phone: "",
     location: "",
+    yearsOfExperience: "",
+    specialties: "",
+    bio: "",
     password: "",
     confirmPassword: "",
   });
@@ -65,18 +68,38 @@ const Register = () => {
         name: fullname,
       });
 
+      // prepare specialties as an array (split comma-separated string)
+      const specialtiesArray =
+        typeof tailorDetails.specialties === "string"
+          ? tailorDetails.specialties
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : Array.isArray(tailorDetails.specialties)
+          ? tailorDetails.specialties
+          : [];
+
+      // prepare payload (ensure types match Appwrite schema)
+      const payload = {
+        businessName: tailorDetails.businessName,
+        name: fullname,
+        email: tailorDetails.email,
+        phone: tailorDetails.phone,
+        location: tailorDetails.location,
+        yearsOfExperience: tailorDetails.yearsOfExperience,
+        specialties: specialtiesArray,
+        bio: tailorDetails.bio,
+        role: "tailor",
+        // add any other required attributes here (e.g., gender)
+      };
+
+      console.log("createRow payload:", payload);
+
       await tablesDB.createRow({
         databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
         tableId: import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
         rowId: newTailor.$id,
-        data: {
-          businessName: tailorDetails.businessName,
-          name: fullname,
-          email: tailorDetails.email,
-          phone: tailorDetails.phone,
-          location: tailorDetails.location,
-          role: "tailor",
-        },
+        data: payload,
       });
       alert("Registration successful!");
       setTailorDetails({
@@ -86,10 +109,13 @@ const Register = () => {
         email: "",
         phone: "",
         location: "",
+        yearsOfExperience: "",
+        bio: "",
+        specialties: "",
         password: "",
         confirmPassword: "",
       });
-      
+
       navigate("/login");
     } catch (error) {
       console.error("Registration failed:", error);
@@ -138,7 +164,7 @@ const Register = () => {
         password: "",
         confirmPassword: "",
       });
-      
+
       navigate("/login");
     } catch (error) {
       console.error("Registration failed:", error);
@@ -321,7 +347,10 @@ const Register = () => {
 
                 <p className="text-center text-gray-600">
                   already have an account?{" "}
-                  <Link to="/login" className="text-emerald-600 hover:underline">
+                  <Link
+                    to="/login"
+                    className="text-emerald-600 hover:underline"
+                  >
                     Sign in
                   </Link>
                 </p>
@@ -442,6 +471,58 @@ const Register = () => {
                   />
                 </div>
 
+                  <div>
+                  <label
+                    htmlFor="tailor-aboutMe"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    About Me
+                  </label>
+                  <textarea
+                    id="tailor-aboutMe"
+                    name="bio"
+                    placeholder="Tell us about yourself"
+                    value={tailorDetails.bio}
+                    onChange={(e) => updateTailorDetails(e)}
+                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="tailor-location"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Years of Experience
+                  </label>
+                  <input
+                    id="tailor-yearsOfExperience"
+                    name="yearsOfExperience"
+                    type="number"
+                    placeholder="3"
+                    value={tailorDetails.yearsOfExperience}
+                    onChange={(e) => updateTailorDetails(e)}
+                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="tailor-location"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    specialties
+                  </label>
+                  <input
+                    id="tailor-specialties"
+                    name="specialties"
+                    type="text"
+                    placeholder="e.g., male wears, female wears"
+                    value={tailorDetails.specialties}
+                    onChange={(e) => updateTailorDetails(e)}
+                    className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
+                  />
+                </div>
+
                 <div>
                   <label
                     htmlFor="tailor-password"
@@ -487,8 +568,10 @@ const Register = () => {
 
                 <p className="text-center text-gray-600">
                   already have an account?{" "}
-                  
-                  <Link to="/login" className="text-emerald-600 hover:underline">
+                  <Link
+                    to="/login"
+                    className="text-emerald-600 hover:underline"
+                  >
                     Sign in
                   </Link>
                 </p>

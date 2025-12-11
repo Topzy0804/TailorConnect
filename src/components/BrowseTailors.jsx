@@ -5,9 +5,11 @@ import { useApp } from "../context";
 import { getRows } from "../utils/db";
 import NewTailor from "./newTailor";
 import { Query } from "appwrite";
+import { useNavigate } from "react-router-dom";
 
 export const BrowseTailors = () => {
-  const { setCurrentView, setSelectedTailorId } = useApp();
+  const { setSelectedTailorId } = useApp();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [experts, setExperts] = useState([]);
@@ -33,10 +35,10 @@ export const BrowseTailors = () => {
 
   const categories = [
     "all",
-    "African Wear",
+    "Male wears",
     "Suits",
-    "Contemporary Fashion",
-    "Indian Wear",
+    "Female wears",
+    "Kids wears",
   ];
 
   const filteredTailors = experts.filter((tailor) => {
@@ -57,8 +59,9 @@ export const BrowseTailors = () => {
   });
 
   const handleTailorClick = (tailorId) => {
-    setSelectedTailorId(tailorId);
-    setCurrentView("tailor-profile");
+    navigate(`/tailor/${tailorId}`);
+    // setSelectedTailorId(tailorId);
+    // setCurrentView("tailor-profile");
   };
 
   return (

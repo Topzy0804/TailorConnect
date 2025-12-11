@@ -3,9 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, CreditCard } from "lucide-react";
 import CartItem from "./cartItem";
 import { useCart } from "../context/cartContext";
+import { createRows } from "../utils/db";
+import { useUser } from "../auth/userContext";
 
 export default function Cart() {
   const navigate = useNavigate();
+  const { user } = useUser();
   
   // FIX: Access global state and handlers from the custom hook
   const {
@@ -17,10 +20,48 @@ export default function Cart() {
     clearCart,
   } = useCart();
 
-  const handleCheckout = () => {
-    if (cartItems.length === 0) return;
-    navigate("/checkout");
-  };
+  // const handleCheckout = () => {
+  //   if (cartItems.length === 0) return;
+  //   navigate("/checkout");
+  // };
+
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) {
+      console.warn("Cart is empty. Cannot proceed to checkout.");
+    }
+
+    const customerId = user?.$id;
+    if (!customerId) {
+      console.error("User not logged in. Cannot proceed to checkout.");
+      return;
+    }
+
+    navigate("/cart");
+    // preventDefault();
+    try {
+
+      const orderDetails = {
+        userDetails: [customerId],
+        items: cartItems.map((item) => JSON.stringify(item)),
+        totalAmount: parseFloat(total.toFixed(2)),
+        status: "pending",
+        itemsCount: cartItems.reduce((acc, item) => acc + item.quantity, 0),
+      }
+    
+      const orderData = await createRows(
+        import.meta.env.VITE_APPWRITE_TABLE_ID_ORDERS,
+        orderDetails
+      );
+
+      if (orderData.$id) {
+        clearCart(); 
+      }
+      console.log("Order created successfully:", orderData);
+    } catch (error) {
+      console.error("Error creating order:", error)
+    }
+  }
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
@@ -63,7 +104,7 @@ export default function Cart() {
               onClick={handleCheckout}
               className="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-3 rounded-md hover:bg-emerald-700 transition"
             >
-              <CreditCard className="w-4 h-4" /> Checkout
+              <CreditCard className="w-4 h-4" /> Proceed to Payment
             </button>
 
             <button

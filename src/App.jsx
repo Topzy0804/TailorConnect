@@ -29,7 +29,7 @@ import ProfileHeader from "./components/profile";
 function App() {
   return (
     <UserProvider>
-      <Router>
+      {/* <Router> */}
         <AppProvider>
         <CartProvider>
           <Routes>
@@ -67,7 +67,7 @@ function App() {
           </Routes>
           </CartProvider> 
         </AppProvider>
-      </Router>
+      {/* </Router> */}
     </UserProvider>
   );
 }

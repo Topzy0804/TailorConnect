@@ -25,6 +25,13 @@ const UserProvider = ({ children }) => {
           role: userProfile.role,
           $id: userProfile.$id,
           name: userProfile.name,
+          phone: userProfile.phone,
+          bussinessName: userProfile.businessName,
+          yearsOfExperience: userProfile.yearsOfExperience,
+          specialties: userProfile.specialties,
+          bio: userProfile.bio,
+          location: userProfile.location,
+
         });
       } catch (err) {
         // no active session or other error — keep user null

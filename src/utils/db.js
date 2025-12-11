@@ -21,6 +21,16 @@ export const getRows = async (tableId, queries = []) => {
   return response;
 };
 
+export const getRow = async (tableId, rowId) => {
+  const response = await tablesDB.getRow({
+    databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
+    tableId: tableId,
+    rowId: rowId,
+  });
+  return response;
+};
+
+
 export const updateRow = async (tableId, rowId, data) => {
   const response = await tablesDB.updateRow({
     databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,

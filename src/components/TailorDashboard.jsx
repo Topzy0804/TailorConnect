@@ -187,7 +187,7 @@ export const TailorDashboard = () => {
                               Order #{order.id} •{" "}
                               {new Date(order.createdAt).toLocaleDateString()}
                             </p>
-                            {order.isCustom && order.measurements && (
+                            {/* {order.isCustom && order.measurements && (
                               <div className="text-sm text-gray-600 mb-2">
                                 <span className="font-medium">
                                   Measurements:
@@ -196,7 +196,7 @@ export const TailorDashboard = () => {
                                   .map(([key, value]) => `${key}: ${value}`)
                                   .join(", ")}
                               </div>
-                            )}
+                            )} */}
                             <div className="flex items-center gap-4">
                               <select
                                 value={order.status}

@@ -1,5 +1,6 @@
 import React from "react";
 import { MapPin, Star } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function NewTailor({ experts = [], onTailorClick = () => {} }) {
   return (
@@ -81,6 +82,11 @@ export default function NewTailor({ experts = [], onTailorClick = () => {} }) {
               <div className="flex items-center justify-between pt-4 border-t border-gray-100 text-sm text-gray-600">
                 <span>{tailor.yearsOfExperience ?? 0} yrs exp</span>
                 <span>{tailor.designCount ?? 0} designs</span>
+              </div>
+              <div className="mt-2 border border-gray-200 p-2 text-sm rounded-lg bg-gray-50 flex items-center justify-center">
+              <Link to={`/tailor/${tailor.$id || tailor.id}`} className="text-emerald-600 font-medium hover:underline">
+                <p>Chat with Expert</p>
+              </Link>
               </div>
             </div>
           </div>

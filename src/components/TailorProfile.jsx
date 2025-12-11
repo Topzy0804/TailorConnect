@@ -1,12 +1,53 @@
 import { MapPin, Star, MessageCircle, Award, ArrowLeft } from 'lucide-react';
-import { mockTailors, mockDesigns } from '../data';
+import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context';
+import { getRow, getRows } from '../utils/db';
+import { Query } from 'appwrite';
 
 export const TailorProfile = () => {
-  const { selectedTailorId, setCurrentView, setSelectedDesignId } = useApp();
+  const { setSelectedDesignId, setCurrentView } = useApp();
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  const tailor = mockTailors.find((t) => t.id === selectedTailorId);
-  const designs = mockDesigns.filter((d) => d.tailorId === selectedTailorId);
+  const [tailor, setTailor] = useState(null);
+  const [designs, setDesigns] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+
+  useEffect(() => {
+    const fetchTailorData = async () => {
+      if (!id) return;
+      setIsLoading(true);
+      try {
+        const tailorData = await getRow(
+          import.meta.env.VITE_APPWRITE_TABLE_ID_USERS,
+          id
+        );
+        setTailor(tailorData);
+
+        const designsData = await getRows(
+          import.meta.env.VITE_TAILORS_TABLE_ID,
+          [Query.equal('tailorId', id)]
+        );
+        setDesigns(designsData);
+      } catch (error) {
+        console.error("Error fetching tailor data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchTailorData();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    )
+  }
 
   if (!tailor) {
     return (
@@ -22,9 +63,9 @@ export const TailorProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen  bg-gray-50">
       <button
-        onClick={() => setCurrentView('browse')}
+        onClick={() => navigate(-1)}
         className="fixed top-20 left-4 z-10 bg-white p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow"
       >
         <ArrowLeft className="w-5 h-5 text-gray-700" />
@@ -115,7 +156,7 @@ export const TailorProfile = () => {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {designs.map((design) => (
+              {Array.isArray(designs) && designs.map((design) => (
                 <div
                   key={design.id}
                   className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow group"
@@ -144,7 +185,7 @@ export const TailorProfile = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="text-2xl font-bold text-gray-900">
-                          ${(design.price / 100).toFixed(2)}
+                          ${(design.price / 1).toFixed(2)}
                         </span>
                         <span className="text-gray-600 text-sm ml-2">
                           {design.category}

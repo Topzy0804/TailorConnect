@@ -1,6 +1,6 @@
 import { Edit, Trash2 } from "lucide-react";
 
-export default function NewDesign({ designs }) {
+export default function NewDesign({ designs, onEdit, onDelete }) {
   return (
     <>
       {designs.map((design) => (

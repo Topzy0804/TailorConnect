@@ -17,6 +17,7 @@ import Login from "./auth/login";
 import Register from "./auth/register";
 import Shop from "./components/Shop";
 import Cart from "./components/cart";
+import  ProductDetail  from "./components/productDetail";
 
 import { UserProvider } from "./auth/userContext";
 import { CartProvider } from "./context/cartContext";
@@ -25,6 +26,7 @@ import MainLayout from "./layout/MainLayout";
 import AuthLayout from "./layout/AuthLayout";
 import FooterWrapper from "./layout/footerWrapper";
 import ProfileHeader from "./components/profile";
+import OrderDetails from "./components/orderDetails";
 
 function App() {
   return (
@@ -50,7 +52,9 @@ function App() {
               <Route path="/chat" element={<Chat />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/shop" element={<Shop />} />
+              <Route path="/design/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/order/:id" element={<OrderDetails />} />
 
 
               </Route>

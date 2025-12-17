@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Search, Tag } from "lucide-react";
 import { getRows } from "../utils/db";
 import NewDesigns from "./clothing";
+import { useNavigate } from "react-router-dom";
 
 const categories = ["All", "Suits", "Shirts", "Trousers", "Outerwear"];
 
@@ -9,6 +10,7 @@ export default function Shop() {
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [sort, setSort] = useState("popular");
+  const navigate = useNavigate();
 
   // fetched designs 
   const [designs, setDesigns] = useState([]);
@@ -49,7 +51,7 @@ export default function Shop() {
   useEffect(() => {
     const fetchTailorData = async () => {
       try {
-        const response = await getRows(import.meta.env.VITE_TAILORS_TABLE_ID);
+        const response = await getRows(import.meta.env.VITE_APPWRITE_TAILORS_TABLE_ID, );
         setDesigns(response.rows ?? []);
         console.log("Tailor data fetched:", response.rows);
       } catch (error) {
@@ -59,6 +61,11 @@ export default function Shop() {
 
     fetchTailorData();
   }, []);
+
+  const handleProductClick = (designId) => {
+    console.log("Product clicked:", designId);
+    navigate(`/design/${designId}`);
+  }
 
   return (
     <section className="min-h-screen bg-gray-50 py-12">
@@ -127,7 +134,8 @@ export default function Shop() {
               No products found.
             </div>
           ) : (
-            <NewDesigns designs={filtered} />
+            <NewDesigns designs={filtered}
+            onProductClick={handleProductClick} />
           )}
         </div>
       </div>

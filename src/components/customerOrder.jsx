@@ -184,24 +184,18 @@ export const CustomerOrder = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
-                      const tid =
-                        order?.tailorId ??
-                        order?.tailor?.$id ??
-                        order?.tailor?.id;
-                      if (tid && setSelectedTailorId) {
-                        setSelectedTailorId(tid);
-                        if (setCurrentView) setCurrentView("chat");
-                      } else {
-                        navigate("/chat");
+                      const orderId = order.$id ?? order?.id;
+                      if (orderId) {
+
+                      navigate(`/order/${orderId}`);
                       }
                     }}
-                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors flex items-center gap-2"
+                    className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
                   >
-                    <MessageCircle className="w-4 h-4" />
-                    Chat
+                    View Order
                   </button>
 
-                  <button
+                  {/* <button
                     onClick={() => {
                       const tid =
                         order?.tailorId ??
@@ -212,8 +206,8 @@ export const CustomerOrder = () => {
                     }}
                     className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
                   >
-                    View Tailor
-                  </button>
+                    View 
+                  </button> */}
                 </div>
               </div>
             </div>

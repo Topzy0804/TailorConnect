@@ -1,21 +1,25 @@
 import { useState, useEffect } from "react";
 import { useUser } from "../../auth/userContext";
 import { useApp } from "../../context";
-import { createRows } from "../../utils/db";
+import { createRows, updateRow } from "../../utils/db";
 import {  uploadFile } from "../../utils/storage";
 
 
 
-export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
+export default function AddCloth({ onClose, initialDesignData = null, initialMode = "design"})  {
+  const isEditMode = !!initialDesignData;
+
+  const [title, setTitle] = useState(initialDesignData?.title || "");
+  const [price, setPrice] = useState(initialDesignData?.price || "");
   const userData = useUser();
   const currentUser = userData?.user ?? null;
 
-  const [mode, setMode] = useState(initialMode);
+  // const [mode, setMode] = useState(initialMode);
   useEffect(() => setMode(initialMode), [initialMode]);
 
-  const [title, setTitle] = useState("");
+  // const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
+  // const [price, setPrice] = useState("");
   const [category, setCategory] = useState("");
   const [sizes, setSizes] = useState([]);
   const [colors, setColors] = useState([]);
@@ -24,7 +28,9 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [gender, setGender] = useState("Men");
+  const [gender, setGender] = useState(initialDesignData?.gender || "Men");
+
+  const [mode, setMode] = useState(initialMode);
 
   const sizeOptions = ["XS", "S", "M", "L", "XL", "XXL"];
   const colorOptions = [
@@ -41,10 +47,11 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
 
   useEffect(() => {
     // cleanup preview URLs on unmount
+    setMode(initialMode);
     return () => {
       imagePreviews.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [imagePreviews]);
+  }, [imagePreviews, initialMode]);
 
   const handleFiles = (file) => {
     console.log(file);
@@ -85,24 +92,28 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
     setSubmitting(true);
     try {
 
-      let imageURL = null
+      let imageURL = initialDesignData?.imageURL || null;
       // Upload files and keep returned file documents
-          const uploaded = await uploadFile(
-            import.meta.env.VITE_APPWRITE_BUCKET_ID,
-            image
-          );
+      if (image && image.lenght !== 0) {
 
-          console.log("Uploaded file:", uploaded);
-      
+        const uploaded = await uploadFile(
+          import.meta.env.VITE_APPWRITE_BUCKET_ID,
+          image
+        );
+        console.log("Uploaded file:", uploaded);
+    
+  
+    // Build public view/download URLs for each uploaded file (Appwrite storage endpoints)
+    const endpoint = import.meta.env.VITE_APPWRITE_ENDPOINT ;
+    const projectId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
+    const bucketId = import.meta.env.VITE_APPWRITE_BUCKET_ID;
+    const fileId = uploaded.$id;
 
-      // Build public view/download URLs for each uploaded file (Appwrite storage endpoints)
-      const endpoint = import.meta.env.VITE_APPWRITE_ENDPOINT ;
-      const projectId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
-      const bucketId = import.meta.env.VITE_APPWRITE_BUCKET_ID;
-      const fileId = uploaded.$id;
+    const fileViewUrl =  `${endpoint}/storage/buckets/${bucketId}/files/${fileId}/view?project=${projectId}`;
+    imageURL = fileViewUrl;
+      }
 
-      const fileViewUrl =  `${endpoint}/storage/buckets/${bucketId}/files/${fileId}/view?project=${projectId}`;
-      imageURL = fileViewUrl;
+
 
       // Map uploaded file docs to a minimal representation
       const clothing = {
@@ -115,10 +126,19 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
         available: available ? "available" : "unavailable",
         imageURL,
         tailorId: currentUser?.$id ?? null,
-        gender: gender ? "Men" : "Women",
+        gender: gender,
       };
 
-      await createRows(import.meta.env.VITE_TAILORS_TABLE_ID, clothing);
+      if (isEditMode) {
+        await updateRow(
+          import.meta.env.VITE_APPWRITE_TAILORS_TABLE_ID,
+          initialDesignData.$id, clothing
+        );
+      } else {
+
+        await createRows(import.meta.env.VITE_APPWRITE_TAILORS_TABLE_ID, clothing);
+      }
+
 
       // cleanup previews
       imagePreviews.forEach((url) => URL.revokeObjectURL(url));
@@ -150,6 +170,8 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
         className="relative z-10 w-full max-w-3xl bg-white rounded-lg shadow-lg overflow-auto max-h-[90vh] p-6"
       >
         <div className="flex items-center justify-between mb-4">
+        <h2>{isEditMode ? "Edit Design" : "Add Design"}</h2>
+        <button type="submit">save changes</button>
           <h3 className="text-lg font-semibold text-gray-900">
             Add {mode === "sale" ? "Clothing for Sale" : "Design"}
           </h3>
@@ -202,8 +224,8 @@ export default function AddCloth({ onClose = () => {}, initialMode = "sale" }) {
               Gender
             </label>
             <select
-              value={gender === "Men" ? "Men" : "Women"}
-              onChange={(e) => setGender(e.target.value === "Men")}
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
               className="mt-1 block w-full rounded border-gray-300 px-3 py-2"
             >
               <option value="Men">Men</option>

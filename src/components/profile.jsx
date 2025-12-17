@@ -15,6 +15,9 @@ export default function ProfileHeader() {
     );
   }
 
+
+  const isTailor = user.role === "tailor";
+
   // Safe name initials
   const initials =
     (user.name || "")
@@ -34,9 +37,12 @@ export default function ProfileHeader() {
               {initials}
             </div>
             {/* Award Badge */}
+            {isTailor && (
+
             <div className="absolute -bottom-2 -right-2 bg-amber-500 rounded-full p-3 shadow-xl">
               <Award className="w-6 h-6 text-slate-900" />
             </div>
+            )}
           </div>
 
           <div className="flex-1 text-center md:text-left">
@@ -44,15 +50,32 @@ export default function ProfileHeader() {
             <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-white to-amber-200 bg-clip-text text-transparent">
               {user.name ?? "Untitled"}
             </h1>
+
+            {isTailor && user.businessName && (
+
             <p className="text-xl text-amber-400 mb-4">{user.bussinessName ?? ""}</p> 
+            )}
             {/* Bio */}
             <p className="text-slate-300 text-lg leading-relaxed mb-6 max-w-3xl">
               {user.bio ?? ""}
             </p>
-            <div>
-              {/* specialties */}
-              <span className="">{user.specialties ?? ""}</span>
-            </div>
+
+           {/* Specialties - typically a tailor attribute */}
+            {isTailor && user.specialties && (
+              <div className="flex flex-wrap gap-2 mb-6 justify-center md:justify-start">
+                {(Array.isArray(user.specialties)
+                  ? user.specialties
+                  : String(user.specialties).split(",")
+                ).map((skill, index) => (
+                  <span
+                    key={index}
+                    className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1 rounded-full text-xs"
+                  >
+                    {skill.trim()}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Contact Info */}
             <div className="flex flex-wrap gap-6 justify-center md:justify-start text-sm">
@@ -71,14 +94,16 @@ export default function ProfileHeader() {
               </div>
             </div>
 
-            {/* Experience Badge */}
+           {isTailor && (
+
             <div className="mt-6 inline-block bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-400/30 px-6 py-3 rounded-lg backdrop-blur-sm">
-              {/* Using user.yearsOfExperience as provided by context */}
-              <span className="text-3xl font-bold text-amber-400">
-                {user.yearsOfExperience ?? 0}
-              </span>
-              <span className="text-slate-300 ml-2">years of excellence</span>
-            </div>
+                <span className="text-3xl font-bold text-amber-400">
+                  {user.yearsOfExperience ?? 0}
+                </span>
+                <span className="text-slate-300 ml-2">years of excellence</span>
+              </div>
+           )}
+
           </div>
         </div>
       </div>

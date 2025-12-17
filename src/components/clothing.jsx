@@ -2,7 +2,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "../context/cartContext";
 
-export default function NewDesigns({ designs }) {
+export default function NewDesigns({ designs, onProductClick }) {
   // const [cartItems, setCartItems] = useState([]);
   const [menu, setMenu] = useState([]);
   const {addToCart} = useCart();
@@ -36,7 +36,8 @@ export default function NewDesigns({ designs }) {
   return (
     <>
       {designs.map((design) => (
-        <div key={design.$id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
+        <div key={design.$id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+        onClick={() => onProductClick(design.$id)}>
           <div className="relative h-48 overflow-hidden">
             <img
               src={design.imageURL}

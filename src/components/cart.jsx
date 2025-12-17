@@ -36,8 +36,6 @@ export default function Cart() {
       return;
     }
 
-    navigate("/cart");
-    // preventDefault();
     try {
 
       const orderDetails = {

@@ -41,6 +41,15 @@ export const updateRow = async (tableId, rowId, data) => {
   return response;
 };
 
+export const deleteRow = async (tableId, rowId) => {
+  const response = await tablesDB.deleteRow({
+    databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
+    tableId: tableId,
+    rowId: rowId,
+  });
+  return response;
+}
+
 // Lightweight helper to fetch a single row (by rowId) if needed
 export const fetchRow = async (tableId, rowId) => {
   const response = await tablesDB.getRow({

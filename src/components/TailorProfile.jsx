@@ -28,8 +28,8 @@ export const TailorProfile = () => {
         setTailor(tailorData);
 
         const designsData = await getRows(
-          import.meta.env.VITE_TAILORS_TABLE_ID,
-          [Query.equal('tailorId', id)]
+          import.meta.env.VITE_APPWRITE_TAILORS_TABLE_ID,
+          [Query.equal("tailorId", tailor.id)]
         );
         setDesigns(designsData);
       } catch (error) {

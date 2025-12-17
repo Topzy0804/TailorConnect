@@ -8,42 +8,92 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
-import { mockOrders, mockDesigns } from "../data";
 import AddCloth from "./tailorModal/addCloth";
 import { useUser } from "../auth/userContext";
-import { getRows } from "../utils/db";
+import { getRows, deleteRow } from "../utils/db";
+import { Query } from "appwrite";
 import NewDesign from "./newDesign";
 
 export const TailorDashboard = () => {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState("orders");
   const [statusFilter, setStatusFilter] = useState("");
-  const tailorOrders = mockOrders.filter((o) => o.tailorId === "1");
-  const tailorDesigns = mockDesigns.filter((d) => d.tailorId === "1");
-  const totalRevenue = tailorOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const [tailorOrders, setTailorOrders] = useState([]);
+  const [tailorDesigns, setTailorDesigns] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [totalRevenue, setTotalRevenue] = useState(0);
   const activeOrders = tailorOrders.filter(
     (o) => o.status === "pending" || o.status === "in_progress"
   ).length;
   const [designs, setDesigns] = useState([]);
 
+  const [editDesign, setEditDesign] = useState(null);
+
   const [isAddClothOpen, setIsAddClothOpen] = useState(false);
 
-  const handleAddClothClose = () => setIsAddClothOpen(false);
+  // const handleAddClothClose = () => setIsAddClothOpen(false);
 
-  useEffect(() => {
+  
     
     const fetchTailorData = async () => {
+      if (!user?.$id) return;
       try {
-        const response = await getRows(import.meta.env.VITE_TAILORS_TABLE_ID);
+        const response = await getRows(import.meta.env.VITE_APPWRITE_TAILORS_TABLE_ID, [Query.equal("tailorId", user.$id)]);
         setDesigns(response.rows);
+        setTailorDesigns(response.rows ?? []);
+
+        const ordersResponse = await getRows(import.meta.env.VITE_APPWRITE_TABLE_ID_ORDERS);
+        const allOrders = ordersResponse.rows ?? [];
+        console.log("All orders fetched:", allOrders);
+        setTailorOrders(
+          allOrders.filter((o) => o.tailorId === user.$id)
+        );
+        
+
+        const revenue = allOrders.reduce((acc, curr) => acc + (Number(curr.totalAmount) || 0), 0);
+        setTotalRevenue(revenue);
+
+
         console.log("Tailor data fetched:", response.rows);
       } catch (error) {
         console.error("Error fetching tailor data:", error);
       }
     };
 
+   useEffect(() => {
     fetchTailorData();
-  }, []);
+  }, [user?.$id]
+   );
+
+   const handleAddClothClose = (shouldRefresh = true) => {
+    setIsAddClothOpen(false);
+    setEditDesign(null);
+    if (shouldRefresh) {
+      fetchTailorData();
+    }
+   };
+
+   const handleEdit = (design) => {
+    setEditDesign(design);
+    setIsAddClothOpen(true);
+   };
+
+   const handleDelete = async (design) => {
+    if (!confirm(`Are you sure you want to delete "${design.title}"?`)) {
+      return;
+    }
+    try {
+      await deleteRow(import.meta.env.VITE_APPWRITE_TAILORS_TABLE_ID, design.$id);
+      setTailorDesigns((prevDesigns) => prevDesigns.filter((d) => d.$id !== design.$id));
+    } catch (error) {
+      console.error("Error deleting design:", error);
+    }
+   };
+
+  const handleStatusChange = (orderId, newStatus) => {
+  }
+
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -146,96 +196,77 @@ export const TailorDashboard = () => {
           </div>
 
           {activeTab === "orders" ? (
-            <div className="divide-y divide-gray-200">
-              {tailorOrders.length === 0 ? (
-                <div className="p-12 text-center">
-                  <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">No orders yet</p>
-                </div>
-              ) : (
-                tailorOrders.map((order) => {
-                  const design = order.designId
-                    ? mockDesigns.find((d) => d.id === order.designId)
-                    : null;
+             <div className="divide-y divide-gray-200">
+             {tailorOrders.length === 0 ? (
+               <div className="p-12 text-center">
+                 <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                 <p className="text-gray-600">No orders yet</p>
+               </div>
+             ) : (
+               tailorOrders.map((order) => {
+                 const design = order.design || {}; 
+                 const imageSrc = design.images?.[0] || null;
 
-                  return (
-                    <div
-                      key={order.id}
-                      className="p-6 hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex gap-4 flex-1">
-                          <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                            {design ? (
-                              <img
-                                src={design.images[0]}
-                                alt={design.title}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Package className="w-6 h-6 text-gray-400" />
-                              </div>
-                            )}
-                          </div>
+                 return (
+                   <div key={order.$id || order.id} className="p-6 hover:bg-gray-50 transition-colors">
+                     <div className="flex items-start justify-between">
+                       <div className="flex gap-4 flex-1">
+                         <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                           {imageSrc ? (
+                             <img src={imageSrc} alt={design.title} className="w-full h-full object-cover" />
+                           ) : (
+                             <div className="w-full h-full flex items-center justify-center">
+                               <Package className="w-6 h-6 text-gray-400" />
+                             </div>
+                           )}
+                         </div>
 
-                          <div className="flex-1">
-                            <h3 className="text-lg font-bold text-gray-900 mb-1">
-                              {design ? design.title : "Custom Order"}
-                            </h3>
-                            <p className="text-gray-600 text-sm mb-2">
-                              Order #{order.id} •{" "}
-                              {new Date(order.createdAt).toLocaleDateString()}
-                            </p>
-                            {/* {order.isCustom && order.measurements && (
-                              <div className="text-sm text-gray-600 mb-2">
-                                <span className="font-medium">
-                                  Measurements:
-                                </span>{" "}
-                                {Object.entries(order.measurements)
-                                  .map(([key, value]) => `${key}: ${value}`)
-                                  .join(", ")}
-                              </div>
-                            )} */}
-                            <div className="flex items-center gap-4">
+                         <div className="flex-1">
+                           <h3 className="text-lg font-bold text-gray-900 mb-1">
+                             {design.title || "Custom Order"}
+                           </h3>
+                           <p className="text-gray-600 text-sm mb-2">
+                             Order #{order.$id} • {new Date(order.createdAt).toLocaleDateString()}
+                           </p>
+                           <div className="flex items-center gap-4">
                               <select
-                                value={order.status}
-                                className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                              >
-                                <option value="pending">Pending</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                              </select>
-                              <span className="text-xl font-bold text-gray-900">
-                                ${(order.totalAmount / 100).toFixed(2)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    //tailor
-                  );
-                })
-              )}
-            </div>
+                        value={order.status}
+                        onChange={(e) =>
+                          handleStatusChange(order.$id, e.target.value)
+                        }
+                        className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 pl-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                             <span className="text-xl font-bold text-gray-900">
+                               ${(order.totalAmount / 100).toFixed(2)}
+                             </span>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 );
+               })
+             )}
+           </div>
           ) : (
             <div className="grid md:grid-cols-3 gap-6 p-6">
-              
-                {
-                  /* Additional content can go here if needed */
-                  <NewDesign designs={designs} />
-                }
-            
+              <NewDesign designs={designs}
+              onEdit={handleEdit}
+              onDelete={handleDelete} />
             </div>
           )}
         </div>
       </div>
 
-      {/* render modal when open */}
       {isAddClothOpen && (
-        <AddCloth onClose={handleAddClothClose} initialMode="design" />
+        <AddCloth onClose={handleAddClothClose} 
+        initialMode="design"
+        initialDesignData={editDesign} />
       )}
     </div>
   );

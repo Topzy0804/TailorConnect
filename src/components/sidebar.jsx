@@ -145,17 +145,17 @@ export const Sidebar = ({ open = true, setOpen = () => {} }) => {
               </li>
             )}
 
-            <li>
-              <Link
-                to="/chat"
-                className="flex items-center gap-3 px-3 py-2 rounded hover:bg-emerald-50 text-gray-700"
-              >
-                <svg className="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M21 6h-2v9H7v2a1 1 0 0 1-1 1H3l4-5h11a1 1 0 0 0 1-1V6zM17 2H3a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2v3l4-3h8a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z" />
-                </svg>
-                <span>Messages</span>
-              </Link>
-            </li>
+           <li>
+  <Link
+    to="/messages" // or "/chat-inbox"
+    className="flex items-center gap-3 px-3 py-2 rounded hover:bg-emerald-50 text-gray-700"
+  >
+    <svg className="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+    <span>Messages</span>
+  </Link>
+</li>
 
             <li>
               <Link

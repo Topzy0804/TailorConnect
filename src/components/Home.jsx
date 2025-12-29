@@ -130,7 +130,7 @@ export const Home = () => {
         )}
       </header> */}
 
-      <main className="pt-20">
+      <main className="pt-1">
         <section className="relative h-screen">
           <div className="absolute inset-0">
             <img

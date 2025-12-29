@@ -26,9 +26,13 @@ export default function Cart() {
   // };
 
   const handleCheckout = async () => {
-    if (cartItems.length === 0) {
+     console.log("Initiating checkout with cart items:", cartItems);
+    if (cartItems.length === 0) return;
+     {
       console.warn("Cart is empty. Cannot proceed to checkout.");
     }
+
+    const currentItem = cartItems[0];
 
     const customerId = user?.$id;
     if (!customerId) {
@@ -36,14 +40,28 @@ export default function Cart() {
       return;
     }
 
+    const tailorId = cartItems[0]?.tailorId;
+    const customerName = user?.name
+    const customerEmail = user?.email
+
+    const colorString = cartItems.map((item) => item.selectedColor || "N/A").join(", ");
+    const sizeString = cartItems.map((item) => item.selectedSize || "N/A").join(", ");
+    
+
     try {
 
       const orderDetails = {
-        userDetails: [customerId],
+        CustomerId: customerId,
+        TailorId: currentItem.tailorId,
         items: cartItems.map((item) => JSON.stringify(item)),
         totalAmount: parseFloat(total.toFixed(2)),
         status: "pending",
         itemsCount: cartItems.reduce((acc, item) => acc + item.quantity, 0),
+        color: colorString,
+        size: sizeString,
+        customerName: customerName,
+        customerEmail: customerEmail,
+
       }
     
       const orderData = await createRows(

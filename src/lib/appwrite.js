@@ -18,4 +18,4 @@ const account = new Account(client);
 const tablesDB = new TablesDB(client);
 const storage = new Storage(client);
 
-export { ID, account, tablesDB, storage, teams };
+export { ID, account, tablesDB, storage, teams, client };

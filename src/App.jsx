@@ -8,7 +8,7 @@ import {
 import { AppProvider } from "./context";
 import { TailorDashboard } from "./components/TailorDashboard";
 import { Checkout } from "./components/Checkout";
-import { Chat } from "./components/Chat";
+// import { Chat } from "./components/Chat";
 import { CustomerDashboard } from "./components/CustomerDashboard";
 import { TailorProfile } from "./components/TailorProfile";
 import { BrowseTailors } from "./components/BrowseTailors";
@@ -16,11 +16,17 @@ import { Home } from "./components/Home";
 import Login from "./auth/login";
 import Register from "./auth/register";
 import Shop from "./components/Shop";
+
 import Cart from "./components/cart";
 import  ProductDetail  from "./components/productDetail";
 
+import TailorOrderDetails from "./components/tailorOrderDetails";
+
 import { UserProvider } from "./auth/userContext";
 import { CartProvider } from "./context/cartContext";
+
+import Chat from "./components/Chat";
+import { ChatInbox } from "./components/chatInbox";
 
 import MainLayout from "./layout/MainLayout";
 import AuthLayout from "./layout/AuthLayout";
@@ -44,12 +50,16 @@ function App() {
                 element={<CustomerDashboard />}
               />
               <Route path="/tailor-dashboard" element={<TailorDashboard />} />
+              <Route path="/tailor/order/:id" element={<TailorOrderDetails />} />
               <Route path="/profile" element={<ProfileHeader />} />
+              <Route path="/chat/:recipientId" element={<Chat />} />
+             
+              <Route path="/messages" element={<ChatInbox />} />
 
               
               <Route element={<FooterWrapper />}>
             <Route path="/" element={<Home />} />
-              <Route path="/chat" element={<Chat />} />
+              {/* <Route path="/chat" element={<Chat />} /> */}
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/design/:id" element={<ProductDetail />} />

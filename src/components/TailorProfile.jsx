@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { useApp } from '../context';
 import { getRow, getRows } from '../utils/db';
 import { Query } from 'appwrite';
+import TailorPageProductDetail from './tailorPageProductDetail';
+
 
 export const TailorProfile = () => {
   const { setSelectedDesignId, setCurrentView } = useApp();
@@ -29,7 +31,7 @@ export const TailorProfile = () => {
 
         const designsData = await getRows(
           import.meta.env.VITE_APPWRITE_TAILORS_TABLE_ID,
-          [Query.equal("tailorId", tailor.id)]
+          [Query.equal("tailorId", id)]
         );
         setDesigns(designsData);
       } catch (error) {
@@ -106,7 +108,7 @@ export const TailorProfile = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => setCurrentView('chat')}
+                  onClick={() => navigate(`/chat/${tailor.$id}`)}
                   className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center gap-2"
                 >
                   <MessageCircle className="w-5 h-5" />
@@ -155,53 +157,9 @@ export const TailorProfile = () => {
               <p className="text-gray-600">No designs available yet</p>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.isArray(designs) && designs.map((design) => (
-                <div
-                  key={design.id}
-                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow group"
-                >
-                  <div className="relative h-64 overflow-hidden">
-                    <img
-                      src={design.images[0]}
-                      alt={design.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    {design.customizable && (
-                      <span className="absolute top-4 right-4 bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                        Customizable
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {design.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {design.description}
-                    </p>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-2xl font-bold text-gray-900">
-                          ${(design.price / 1).toFixed(2)}
-                        </span>
-                        <span className="text-gray-600 text-sm ml-2">
-                          {design.category}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => handleOrderClick(design.id)}
-                        className="bg-emerald-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
-                      >
-                        Order
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+             <TailorPageProductDetail designs={designs} />
+           </div>
           )}
 
           <div className="mt-8 bg-white rounded-xl p-8 text-center">
@@ -211,11 +169,10 @@ export const TailorProfile = () => {
             <p className="text-gray-600 mb-6">
               Chat with {tailor.name} to discuss your unique design ideas and get a personalized quote
             </p>
-            <button
-              onClick={() => setCurrentView('chat')}
-              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
-            >
-              Start Custom Order
+            <button 
+              className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
+            onClick={() => navigate(`/chat/${tailor.$id}`)}>
+             Message Tailor
             </button>
           </div>
         </div>

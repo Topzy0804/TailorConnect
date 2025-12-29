@@ -13,10 +13,12 @@ import { useUser } from "../auth/userContext";
 import { getRows, deleteRow } from "../utils/db";
 import { Query } from "appwrite";
 import NewDesign from "./newDesign";
+import { useNavigate } from "react-router-dom";
 
 export const TailorDashboard = () => {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState("orders");
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState("");
   const [tailorOrders, setTailorOrders] = useState([]);
   const [tailorDesigns, setTailorDesigns] = useState([]);
@@ -42,12 +44,15 @@ export const TailorDashboard = () => {
         setDesigns(response.rows);
         setTailorDesigns(response.rows ?? []);
 
-        const ordersResponse = await getRows(import.meta.env.VITE_APPWRITE_TABLE_ID_ORDERS);
+        const ordersResponse = await getRows(import.meta.env.VITE_APPWRITE_TABLE_ID_ORDERS, [Query.equal("TailorId", user.$id)]);
+        console.log("Orders fetched for tailor:", ordersResponse);
+
         const allOrders = ordersResponse.rows ?? [];
+
         console.log("All orders fetched:", allOrders);
-        setTailorOrders(
-          allOrders.filter((o) => o.tailorId === user.$id)
-        );
+        console.log("User ID:", user.$id);
+        setTailorOrders(allOrders);
+          
         
 
         const revenue = allOrders.reduce((acc, curr) => acc + (Number(curr.totalAmount) || 0), 0);
@@ -115,7 +120,7 @@ export const TailorDashboard = () => {
               <DollarSign className="w-5 h-5 text-emerald-600" />
             </div>
             <p className="text-3xl font-bold text-gray-900">
-              ${(totalRevenue / 100).toFixed(2)}
+              ${(totalRevenue / 1).toFixed(2)}
             </p>
             <div className="flex items-center gap-1 mt-2 text-green-600 text-sm">
               <TrendingUp className="w-4 h-4" />
@@ -195,65 +200,55 @@ export const TailorDashboard = () => {
             </div>
           </div>
 
-          {activeTab === "orders" ? (
-             <div className="divide-y divide-gray-200">
-             {tailorOrders.length === 0 ? (
-               <div className="p-12 text-center">
-                 <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                 <p className="text-gray-600">No orders yet</p>
-               </div>
-             ) : (
-               tailorOrders.map((order) => {
-                 const design = order.design || {}; 
-                 const imageSrc = design.images?.[0] || null;
+{activeTab === "orders" ? (
+   <div className="divide-y divide-gray-200">
+   {tailorOrders.length === 0 ? (
+     <div className="p-12 text-center">
+       <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+       <p className="text-gray-600">No orders yet</p>
+     </div>
+   ) : (
+     tailorOrders.map((order) => {
+       // Parse the first item to get product info
+       let firstItem = {};
+       try {
+         firstItem = order.items?.length > 0 ? JSON.parse(order.items[0]) : {};
+       } catch (e) { console.error(e); }
 
-                 return (
-                   <div key={order.$id || order.id} className="p-6 hover:bg-gray-50 transition-colors">
-                     <div className="flex items-start justify-between">
-                       <div className="flex gap-4 flex-1">
-                         <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                           {imageSrc ? (
-                             <img src={imageSrc} alt={design.title} className="w-full h-full object-cover" />
-                           ) : (
-                             <div className="w-full h-full flex items-center justify-center">
-                               <Package className="w-6 h-6 text-gray-400" />
-                             </div>
-                           )}
-                         </div>
+       return (
+         <div key={order.$id}
+         onClick={() => navigate(`/tailor/order/${order.$id}`)}
+          className="p-6 hover:bg-gray-50 transition-colors cursor-pointer border-b last:border-0">
 
-                         <div className="flex-1">
-                           <h3 className="text-lg font-bold text-gray-900 mb-1">
-                             {design.title || "Custom Order"}
-                           </h3>
-                           <p className="text-gray-600 text-sm mb-2">
-                             Order #{order.$id} • {new Date(order.createdAt).toLocaleDateString()}
-                           </p>
-                           <div className="flex items-center gap-4">
-                              <select
-                        value={order.status}
-                        onChange={(e) =>
-                          handleStatusChange(order.$id, e.target.value)
-                        }
-                        className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 pl-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
-                             <span className="text-xl font-bold text-gray-900">
-                               ${(order.totalAmount / 100).toFixed(2)}
-                             </span>
-                           </div>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 );
-               })
-             )}
+          <div className="flex justify-between items-center">
+           <div className="flex gap-4">
+             <img 
+               src={firstItem.image || "placeholder.png"} 
+               className="w-20 h-20 object-cover rounded" 
+             />
+             <div>
+               <h3 className="font-bold">{firstItem.title || "Custom Order"}</h3>
+               <p className="text-sm text-gray-500">Order #{order.$id.slice(-6)}</p>
+               <p className="text-sm text-emerald-600 font-semibold">${order.totalAmount}</p>
+             </div>
            </div>
-          ) : (
+          <div className="text-right">
+            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+            }`}>
+                {order.status}
+            </span>
+            <p className="text-xs text-gray-400 mt-2">View Details →</p>
+        </div>
+         </div>
+        </div>
+
+       );
+     })
+   )}
+  
+   </div>
+) : (
             <div className="grid md:grid-cols-3 gap-6 p-6">
               <NewDesign designs={designs}
               onEdit={handleEdit}

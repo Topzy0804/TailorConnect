@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
 
 const CartContext = createContext(null);
 
@@ -11,7 +11,18 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+    const storedCart = localStorage.getItem('cart');
+    return storedCart ? JSON.parse(storedCart) : [];
+    } catch (error) {
+      return []; 
+    }
+  });
+
+  // useEffect(() => {
+  //   localStorage.setItem('cart', JSON.stringify(cartItems));
+  // }, [cartItems]);
 
   const total = useMemo(
     () =>
@@ -25,28 +36,14 @@ export const CartProvider = ({ children }) => {
   const formatPrice = useCallback((v) => `$${Number(v || 0).toFixed(2)}`, []);
 
   const addToCart = useCallback((itemData) => {
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.$id === itemData.$id);
-
-      if (existingItem) {
-        // Item exists, increment quantity
-        return prevItems.map((item) =>
-          item.$id === itemData.$id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        // Item is new, add it with quantity: 1
-        return [...prevItems, { ...itemData, quantity: 1 }];
-      }
-    });
+    setCartItems([{ ...itemData, quantity: 1 }]);
   }, []);
 
   // Function to update item quantity (used from the Cart component)
   const handleQuantityUpdate = useCallback((itemId, newQuantity) => {
     if (newQuantity < 1) {
       // If quantity is 0, remove the item
-      setCartItems((prev) => prev.filter((it) => it.$id !== itemId));
+      setCartItems([]);
       return;
     }
 
@@ -58,10 +55,7 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   // Function to remove an item completely
-  const handleRemoveItem = useCallback((id) =>
-    setCartItems((prev) => prev.filter((it) => it.$id !== id)),
-    []
-  );
+  const handleRemoveItem = useCallback(() => setCartItems([]), []);
   
   // Function to clear the entire cart
   const clearCart = useCallback(() => setCartItems([]), []);

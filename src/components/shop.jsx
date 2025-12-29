@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Search, Tag } from "lucide-react";
-import { getRows } from "../utils/db";
+import { getRows, Query } from "../utils/db";
 import NewDesigns from "./clothing";
 import { useNavigate } from "react-router-dom";
 
@@ -51,7 +51,7 @@ export default function Shop() {
   useEffect(() => {
     const fetchTailorData = async () => {
       try {
-        const response = await getRows(import.meta.env.VITE_APPWRITE_TAILORS_TABLE_ID, );
+        const response = await getRows(import.meta.env.VITE_APPWRITE_TAILORS_TABLE_ID, [Query.select(['*', 'tailorId.*'])]);
         setDesigns(response.rows ?? []);
         console.log("Tailor data fetched:", response.rows);
       } catch (error) {

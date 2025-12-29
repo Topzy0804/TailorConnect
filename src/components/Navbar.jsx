@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "../auth/userContext";
-import { useCart } from "../context/useCart";
+import { useCart } from "../context/cartContext";
 
 export const Navbar = ({ onToggleSidebar = () => {} }) => {
   const navigate = useNavigate();

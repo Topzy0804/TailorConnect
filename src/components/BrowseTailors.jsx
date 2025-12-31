@@ -1,6 +1,5 @@
 import { Search, MapPin, Star, Filter } from "lucide-react";
-import { useState, useEffect } from "react";
-// import { mockTailors } from "../data";
+import { useState, useEffect, useMemo } from "react"; // Added useMemo
 import { useApp } from "../context";
 import { getRows } from "../utils/db";
 import NewTailor from "./newTailor";
@@ -25,28 +24,24 @@ export const BrowseTailors = () => {
         [Query.equal("role", "tailor")]
       );
       setExperts(response.rows || []);
-      console.log("Fetched experts:", response.rows);
     } catch (error) {
       console.error("Error fetching experts:", error);
-      // Fallback to mock data if fetch fails
-      // setExperts(mockTailors);
     }
   };
 
-  const categories = [
-    "all",
-    "Male wears",
-    "Suits",
-    "Female wears",
-    "Kids wears",
-  ];
+  // 1. DYNAMIC CATEGORY EXTRACTION
+  // This looks at the 'specialties' column in your userDetails table
+  const categories = useMemo(() => {
+    const allSpecialties = experts.flatMap((tailor) => tailor.specialties || []);
+    // 'Set' removes duplicates, and we add 'all' at the beginning
+    return ["all", ...new Set(allSpecialties)];
+  }, [experts]);
 
+  // 2. FILTERING LOGIC
   const filteredTailors = experts.filter((tailor) => {
     const matchesSearch =
       (tailor.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (tailor.location || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
+      (tailor.location || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (tailor.specialties || []).some((s) =>
         s.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -60,8 +55,6 @@ export const BrowseTailors = () => {
 
   const handleTailorClick = (tailorId) => {
     navigate(`/tailor/${tailorId}`);
-    // setSelectedTailorId(tailorId);
-    // setCurrentView("tailor-profile");
   };
 
   return (
@@ -96,6 +89,7 @@ export const BrowseTailors = () => {
             </button>
           </div>
 
+          {/* 3. DYNAMIC CATEGORY BUTTONS */}
           <div className="flex gap-2 mt-4 flex-wrap">
             {categories.map((category) => (
               <button
@@ -103,8 +97,8 @@ export const BrowseTailors = () => {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   selectedCategory === category
-                    ? "bg-emerald-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-emerald-600 text-white" // Matches active UI
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200" // Matches inactive UI
                 }`}
               >
                 {category === "all" ? "All Categories" : category}
@@ -114,14 +108,11 @@ export const BrowseTailors = () => {
         </div>
 
         <div className="pb-16">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {filteredTailors.length} Tailors Found
-            </h2>
-          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            {filteredTailors.length} Tailors Found
+          </h2>
 
-          {/* Larger cards: fewer columns on wide screens, bigger gap */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             <NewTailor
               experts={filteredTailors}
               onTailorClick={handleTailorClick}

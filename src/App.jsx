@@ -16,6 +16,7 @@ import { Home } from "./components/Home";
 import Login from "./auth/login";
 import Register from "./auth/register";
 import Shop from "./components/Shop";
+import HeritagePage from "./components/heritageModal.jsx";
 
 import Cart from "./components/cart";
 import  ProductDetail  from "./components/productDetail";
@@ -42,6 +43,8 @@ function App() {
         <CartProvider>
           <Routes>
             <Route element={<MainLayout />}>
+
+            <Route path="/heritage" element={<HeritagePage />} />
 
               <Route path="/browse" element={<BrowseTailors />} />
               <Route path="/tailor/:id" element={<TailorProfile />} />

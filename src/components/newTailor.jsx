@@ -13,13 +13,7 @@ export default function NewTailor({ experts = [], onTailorClick = () => {} }) {
         >
           <div className="relative h-64 md:h-72 overflow-hidden">
             <img
-              src={
-                tailor.coverImage ||
-                tailor.banner ||
-                `https://via.placeholder.com/800x480?text=${encodeURIComponent(
-                  tailor.name || "Tailor"
-                )}`
-              }
+              src={tailor.profilePicture}
               alt={tailor.name || "Tailor"}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
@@ -33,7 +27,7 @@ export default function NewTailor({ experts = [], onTailorClick = () => {} }) {
                 className="absolute bottom-4 left-4 w-20 h-20 rounded-full border-4 border-white object-cover"
               />
             ) : (
-              <div className="absolute bottom-4 left-4 w-20 h-20 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-sm text-gray-500">
+              <div className="absolute bottom-4 left-4 w-20 h-20 rounded-full border-4 border-white bg-emerald-100 flex items-center justify-center text-lg font-bold text-emerald-700">
                 {((tailor.name || "T").slice(0, 1) || "T").toUpperCase()}
               </div>
             )}

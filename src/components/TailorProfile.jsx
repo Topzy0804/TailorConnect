@@ -64,6 +64,12 @@ export const TailorProfile = () => {
     setCurrentView('checkout');
   };
 
+  if (isLoading) return <div className='min-h-screen flex items-center justify-center '>Loading...</div>
+
+  if (!tailor) return <div className='min-h-screen flex items-center justify-center '>Tailor not found</div>
+
+  const initials = (tailor.name || "").split(" ").map((n) => (n ? n[0] : "")).join("").slice(0, 3).toUpperCase() || "?";
+
   return (
     <div className="min-h-screen  bg-gray-50">
       <button
@@ -75,9 +81,9 @@ export const TailorProfile = () => {
 
       <div className="relative h-80 overflow-hidden">
         <img
-          src={tailor.coverImage}
-          alt={tailor.name}
-          className="w-full h-full object-cover"
+          src={tailor.profilePicture}
+          alt="cover"
+          className="w-full h-full object-cover opacity-70 blur-sm scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
       </div>
@@ -86,7 +92,7 @@ export const TailorProfile = () => {
         <div className="bg-white rounded-xl shadow-xl p-8 mb-8">
           <div className="flex items-start gap-6 mb-6">
             <img
-              src={tailor.avatar}
+              src={tailor.profilePicture}
               alt={tailor.name}
               className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
             />

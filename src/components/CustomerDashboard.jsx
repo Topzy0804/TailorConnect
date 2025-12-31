@@ -9,8 +9,11 @@ import { useApp } from "../context";
 import { CustomerOrder } from "./customerOrder";
 import { useEffect, useState } from "react";
 import { getRows } from "../utils/db";
+import { Query } from "appwrite";
+import { useUser } from "../auth/userContext";
 
 export const CustomerDashboard = () => {
+  const { user } = useUser();
   const [orders, setOrders] = useState([]);
   const [totalOrder, setTotalOrder] = useState(0);
   const [inProgress, setInProgress] = useState(0);
@@ -22,16 +25,23 @@ export const CustomerDashboard = () => {
   const { setCurrentView, setSelectedTailorId } = useApp();
 
   useEffect(() => {
-    fetchOrderStates();
-  }, []);
+    if (user?.$id) {
+
+      fetchOrderStates();
+    }
+  }, [user?.$id]);
 
   const fetchOrderStates = async () => {
+    if (!user?.$id) return;
+
     setLoading(true);
     try {
       // Use the correct env var (confirm this name in your .env)
       const response = await getRows(
         import.meta.env.VITE_APPWRITE_TABLE_ID_ORDERS,
-        []
+        [
+          Query.equal("CustomerId", user.$id),
+        ]
       );
 
       const fetchedOrders = response?.rows ?? response?.documents ?? [];

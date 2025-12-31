@@ -9,8 +9,11 @@ import {
 import { useApp } from "../context";
 import { useNavigate } from "react-router-dom";
 import { getRows } from "../utils/db";
+import { Query } from "appwrite";
+import { useUser } from "../auth/userContext";
 
 export const CustomerOrder = () => {
+  const { user } = useUser();
   const { setSelectedTailorId, setCurrentView } = useApp() || {};
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
@@ -18,13 +21,17 @@ export const CustomerOrder = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!user?.$id) return;
+
     let mounted = true;
     const fetchOrders = async () => {
       setLoading(true);
       try {
         const response = await getRows(
           import.meta.env.VITE_APPWRITE_TABLE_ID_ORDERS,
-          []
+          [
+            Query.equal("CustomerId", user.$id),
+          ]
         );
         const rows = response?.rows ?? response?.documents ?? response ?? [];
         if (mounted) setOrders(Array.isArray(rows) ? rows : []);
@@ -40,7 +47,7 @@ export const CustomerOrder = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user?.$id]);
 
   const getStatusColor = (status) => {
     switch ((status || "").toString()) {
